@@ -15,7 +15,7 @@ namespace lightwave {
 class Perspective : public Camera {
 public:
     Perspective(const Properties &properties) : Camera(properties) {
-        NOT_IMPLEMENTED
+        // NOT_IMPLEMENTED
 
         // hints:
         // * precompute any expensive operations here (most importantly
@@ -24,7 +24,10 @@ public:
     }
 
     CameraSample sample(const Point2 &normalized, Sampler &rng) const override {
-        NOT_IMPLEMENTED
+        return CameraSample{ .ray = Ray(
+                                 Vector(normalized.x(), normalized.x(), 0.f),
+                                 Vector(0.f, 0.f, 1.f)),
+                             .weight = Color(1.0f) };
 
         // hints:
         // * use m_transform to transform the local camera coordinate system
@@ -32,13 +35,15 @@ public:
     }
 
     std::string toString() const override {
-        return tfm::format("Perspective[\n"
-                           "  width = %d,\n"
-                           "  height = %d,\n"
-                           "  transform = %s,\n"
-                           "]",
-                           m_resolution.x(), m_resolution.y(),
-                           indent(m_transform));
+        return tfm::format(
+            "Perspective[\n"
+            "  width = %d,\n"
+            "  height = %d,\n"
+            "  transform = %s,\n"
+            "]",
+            m_resolution.x(),
+            m_resolution.y(),
+            indent(m_transform));
     }
 };
 
