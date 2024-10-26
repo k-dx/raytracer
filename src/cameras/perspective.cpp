@@ -13,9 +13,26 @@ namespace lightwave {
  * ray.direction.y < 0 ).
  */
 class Perspective : public Camera {
+private:
+    float imageAspectRatio;
+    float fovTan;
+    char fovAxis;
+
 public:
     Perspective(const Properties &properties) : Camera(properties) {
-        // NOT_IMPLEMENTED
+        logger(EDebug, "Constructor of Perspective");
+
+        const float fov = properties.get<float>("fov");
+        fovAxis         = properties.get<std::string>("fovAxis")[0];
+
+        logger(EDebug, "fov: %d", fov);
+        fovTan = tan(fov / 2.f * Pi / 180.f);
+        logger(EDebug, "fovTan: %f", fovTan);
+
+        logger(EDebug, "resolution: %s", m_resolution);
+        imageAspectRatio = (float) m_resolution[0] / (float) m_resolution[1];
+
+        logger(EDebug, "aspect ratio: %d", imageAspectRatio);
 
         // hints:
         // * precompute any expensive operations here (most importantly
@@ -24,9 +41,19 @@ public:
     }
 
     CameraSample sample(const Point2 &normalized, Sampler &rng) const override {
-        return CameraSample{ .ray = Ray(
-                                 Vector(normalized.x(), normalized.x(), 0.f),
-                                 Vector(0.f, 0.f, 1.f)),
+        float rayX = normalized.x() * fovTan;
+        if (fovAxis == 'y') {
+            rayX *= imageAspectRatio;
+        }
+        float rayY = normalized.y() * fovTan;
+        if (fovAxis == 'x') {
+            rayY /= imageAspectRatio;
+        }
+
+        const auto direction = Vector(rayX, rayY, 1.f).normalized();
+
+        return CameraSample{ .ray = m_transform->apply(
+                                 Ray(Vector(0.f, 0.f, 0.f), direction)),
                              .weight = Color(1.0f) };
 
         // hints:
