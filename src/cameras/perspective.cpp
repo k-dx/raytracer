@@ -20,24 +20,12 @@ private:
 
 public:
     Perspective(const Properties &properties) : Camera(properties) {
-        logger(EDebug, "Constructor of Perspective");
-
         const float fov = properties.get<float>("fov");
         fovAxis         = properties.get<std::string>("fovAxis")[0];
 
-        logger(EDebug, "fov: %d", fov);
         fovTan = tan(fov / 2.f * Pi / 180.f);
-        logger(EDebug, "fovTan: %f", fovTan);
 
-        logger(EDebug, "resolution: %s", m_resolution);
         imageAspectRatio = (float) m_resolution[0] / (float) m_resolution[1];
-
-        logger(EDebug, "aspect ratio: %d", imageAspectRatio);
-
-        // hints:
-        // * precompute any expensive operations here (most importantly
-        // trigonometric functions)
-        // * use m_resolution to find the aspect ratio of the image
     }
 
     CameraSample sample(const Point2 &normalized, Sampler &rng) const override {
@@ -55,10 +43,6 @@ public:
         return CameraSample{ .ray = m_transform->apply(
                                  Ray(Vector(0.f, 0.f, 0.f), direction)),
                              .weight = Color(1.0f) };
-
-        // hints:
-        // * use m_transform to transform the local camera coordinate system
-        // into the world coordinate system
     }
 
     std::string toString() const override {
