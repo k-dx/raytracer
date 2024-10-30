@@ -51,7 +51,10 @@ protected:
 
         surf.geometryNormal = (v2v - v1v).cross(v3v - v1v).normalized();
 
-        surf.shadingNormal = surf.geometryNormal;
+        surf.shadingNormal =
+            m_smoothNormals ? Vertex::interpolate(Vector2(u, v), v1, v2, v3)
+                                  .normal.normalized()
+                            : surf.geometryNormal;
 
         surf.tangent = (v2v - v1v).normalized();
 
