@@ -36,20 +36,22 @@ class TriangleMesh : public AccelerationStructure {
 protected:
     int numberOfPrimitives() const override { return int(m_triangles.size()); }
 
-    inline void populate(int primitiveIndex, SurfaceEvent &surf, const Point &position, float u, float v) const {
+    inline void populate(int primitiveIndex, SurfaceEvent &surf,
+                         const Point &position, float u, float v) const {
         surf.position = position;
 
         const Vertex v1 = m_vertices[m_triangles[primitiveIndex][0]];
         const Vertex v2 = m_vertices[m_triangles[primitiveIndex][1]];
         const Vertex v3 = m_vertices[m_triangles[primitiveIndex][2]];
-        //surf.uv = (v2.uv - v1.uv) * u + (v3.uv - v1.uv) * v;
+        // surf.uv = (v2.uv - v1.uv) * u + (v3.uv - v1.uv) * v;
 
         const Vector v1v = Vector(v1.position);
         const Vector v2v = Vector(v2.position);
         const Vector v3v = Vector(v3.position);
 
         surf.geometryNormal = (v2v - v1v).cross(v3v - v1v).normalized();
-        surf.shadingNormal  = surf.geometryNormal;
+
+        surf.shadingNormal = surf.geometryNormal;
 
         surf.tangent = (v2v - v1v).normalized();
 
@@ -59,9 +61,12 @@ protected:
     bool intersect(int primitiveIndex, const Ray &ray, Intersection &its,
                    Sampler &rng) const override {
 
-        const Vector v1 = Vector(m_vertices[m_triangles[primitiveIndex][0]].position);
-        const Vector v2 = Vector(m_vertices[m_triangles[primitiveIndex][1]].position);
-        const Vector v3 = Vector(m_vertices[m_triangles[primitiveIndex][2]].position);
+        const Vector v1 =
+            Vector(m_vertices[m_triangles[primitiveIndex][0]].position);
+        const Vector v2 =
+            Vector(m_vertices[m_triangles[primitiveIndex][1]].position);
+        const Vector v3 =
+            Vector(m_vertices[m_triangles[primitiveIndex][2]].position);
 
         const Vector c = Vector(ray.origin) - v1;
 
@@ -93,7 +98,7 @@ protected:
         float u = mu.determinant() / detM;
         float v = mv.determinant() / detM;
 
-        if (u+v > 1.0f || u < 0.0f || v < 0.0f) {
+        if (u + v > 1.0f || u < 0.0f || v < 0.0f) {
             return false;
         }
 
@@ -116,15 +121,19 @@ protected:
         Vector v2 = Vector(m_vertices[m_triangles[primitiveIndex][1]].position);
         Vector v3 = Vector(m_vertices[m_triangles[primitiveIndex][2]].position);
 
-        return Bounds(Point(std::min({v1[0], v2[0], v3[0]}), std::min({v1[1], v2[1], v3[1]}), std::min({v1[2], v2[2], v3[2]}))
-            , Point(std::max({v1[0], v2[0], v3[0]}), std::max({v1[1], v2[1], v3[1]}), std::max({v1[2], v2[2], v3[2]})));
+        return Bounds(Point(std::min({ v1[0], v2[0], v3[0] }),
+                            std::min({ v1[1], v2[1], v3[1] }),
+                            std::min({ v1[2], v2[2], v3[2] })),
+                      Point(std::max({ v1[0], v2[0], v3[0] }),
+                            std::max({ v1[1], v2[1], v3[1] }),
+                            std::max({ v1[2], v2[2], v3[2] })));
     }
 
     Point getCentroid(int primitiveIndex) const override {
         Vector v1 = Vector(m_vertices[m_triangles[primitiveIndex][0]].position);
         Vector v2 = Vector(m_vertices[m_triangles[primitiveIndex][1]].position);
         Vector v3 = Vector(m_vertices[m_triangles[primitiveIndex][2]].position);
-        
+
         return (v1 + v2 + v3) / 3.0f;
     }
 
