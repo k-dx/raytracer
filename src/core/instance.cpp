@@ -6,6 +6,11 @@
 namespace lightwave {
 
 void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
+    surf.tangent = surf.tangent.normalized();
+    surf.geometryNormal =
+        m_transform->applyNormal(surf.geometryNormal).normalized();
+    surf.shadingNormal =
+        m_transform->applyNormal(surf.shadingNormal).normalized();
 }
 
 inline void validateIntersection(const Intersection &its) {
@@ -49,8 +54,7 @@ bool Instance::intersect(const Ray &worldRay, Intersection &its,
     }
 
     const float previousT = its.t;
-    Ray localRay;
-    NOT_IMPLEMENTED
+    Ray localRay          = m_transform->inverse(worldRay).normalized();
 
     // hints:
     // * transform the ray (do not forget to normalize!)
@@ -61,6 +65,11 @@ bool Instance::intersect(const Ray &worldRay, Intersection &its,
         its.instance = this;
         validateIntersection(its);
         // hint: how does its.t need to change?
+
+        // not sure about this
+        Vector vecToIntersection =
+            m_transform->apply(Vector(its.position)) - Vector(worldRay.origin);
+        its.t = vecToIntersection.length();
 
         // if (its.frame.normal.dot(localRay.direction) > 0) {
         //     /// TODO: hack, just for testing
