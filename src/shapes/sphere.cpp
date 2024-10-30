@@ -12,9 +12,8 @@ public:
                       (2 * std::numbers::pi);
         surf.uv.y() = (position.y() + 1) / 2;
 
-        // normal should already be normalized,, but do it again to get rid of
-        // potentially accumulated error
-        surf.shadingNormal  = Vector(position).normalized();
+        // normal should already be normalized.
+        surf.shadingNormal  = Vector(position);
         surf.geometryNormal = surf.shadingNormal;
 
         // Three different cases to account for all edge cases where the normal
