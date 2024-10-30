@@ -11,3 +11,5 @@ __pycache__
 /docs/latex
 
 .DS_Store
+
+my_first_scene.exr
