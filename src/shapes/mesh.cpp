@@ -43,7 +43,7 @@ protected:
         const Vertex v1 = m_vertices[m_triangles[primitiveIndex][0]];
         const Vertex v2 = m_vertices[m_triangles[primitiveIndex][1]];
         const Vertex v3 = m_vertices[m_triangles[primitiveIndex][2]];
-        // surf.uv = (v2.uv - v1.uv) * u + (v3.uv - v1.uv) * v;
+        surf.uv         = (v2.uv - v1.uv) * u + (v3.uv - v1.uv) * v;
 
         const Vector v1v = Vector(v1.position);
         const Vector v2v = Vector(v2.position);

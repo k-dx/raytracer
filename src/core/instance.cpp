@@ -59,6 +59,9 @@ bool Instance::intersect(const Ray &worldRay, Intersection &its,
     // hints:
     // * transform the ray (do not forget to normalize!)
     // * how does its.t need to change?
+    its.position             = m_transform->inverse(its.position);
+    Vector vecToIntersection = Vector(its.position) - Vector(localRay.origin);
+    its.t                    = vecToIntersection.length();
 
     const bool wasIntersected = m_shape->intersect(localRay, its, rng);
     if (wasIntersected) {
@@ -66,10 +69,9 @@ bool Instance::intersect(const Ray &worldRay, Intersection &its,
         validateIntersection(its);
         // hint: how does its.t need to change?
 
-        // not sure about this
-        Vector vecToIntersection =
-            m_transform->apply(Vector(its.position)) - Vector(worldRay.origin);
-        its.t = vecToIntersection.length();
+        its.position      = m_transform->apply(Vector(its.position));
+        vecToIntersection = Vector(its.position) - Vector(worldRay.origin);
+        its.t             = vecToIntersection.length();
 
         // if (its.frame.normal.dot(localRay.direction) > 0) {
         //     /// TODO: hack, just for testing
