@@ -12,4 +12,5 @@ __pycache__
 
 .DS_Store
 
-my_first_scene.exr
+!/features/*.exr
+/*.exr

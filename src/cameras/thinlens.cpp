@@ -12,37 +12,51 @@ namespace lightwave {
  * normalized.y < 0 @endcode ) are directed in negative y direction ( @code
  * ray.direction.y < 0 ).
  */
-class Perspective : public Camera {
+class Thinlens : public Camera {
 private:
     float factorX;
     float factorY;
+    float focusDistance;
+    float apertureDiameter;
 
 public:
-    Perspective(const Properties &properties) : Camera(properties) {
-        const float fov    = properties.get<float>("fov");
-        const char fovAxis = properties.get<std::string>("fovAxis")[0];
+    Thinlens(const Properties &properties) : Camera(properties) {
+        const float fov           = properties.get<float>("fov");
+        const char fovAxis        = properties.get<std::string>("fovAxis")[0];
+        focusDistance             = properties.get<float>("focusDistance");
+        const float aperture      = properties.get<float>("aperture");
+        //if this parameter is present treat "aperture" as the f-number of the aperture and focalLength as the focal length f
+        //otherwise treaet aperture as the diameter of the aperture
+        const float focalLength   = properties.get<float>("focalLength", aperture * aperture);
+
+        apertureDiameter = focalLength / aperture;
 
         const float fovTan = tan(fov / 2.f * Pi / 180.f);
+        const float scaleFactor = fovTan * focusDistance;
         const float imageAspectRatio = (float) m_resolution[0] / (float) m_resolution[1];
 
-        factorX = fovTan;
+        factorX = scaleFactor;
         if (fovAxis == 'y') {
             factorX *= imageAspectRatio;
         }
-        factorY = fovTan;
+        factorY = scaleFactor;
         if (fovAxis == 'x') {
             factorY /= imageAspectRatio;
         }
     }
 
     CameraSample sample(const Point2 &normalized, Sampler &rng) const override {
-        float rayX = normalized.x() * factorX;
-        float rayY = normalized.y() * factorY;
+        //square root to distribute the rays equally over the aperture
+        const float radius = sqrt(rng.next()) * apertureDiameter;
+        const float angle = rng.next() * 2 * Pi;
+        const Vector source = Vector(radius * sin(angle), radius * cos(angle), 0.0);
 
-        const auto direction = Vector(rayX, rayY, 1.f).normalized();
+        const Vector target = Vector(normalized.x() * factorX, normalized.y() * factorY, focusDistance);
+
+        const auto direction = (target - source).normalized();
 
         return CameraSample{ .ray = m_transform->apply(
-                                 Ray(Vector(0.f, 0.f, 0.f), direction)),
+                                 Ray(source, direction)),
                              .weight = Color(1.0f) };
     }
 
@@ -61,4 +75,4 @@ public:
 
 } // namespace lightwave
 
-REGISTER_CAMERA(Perspective, "perspective")
+REGISTER_CAMERA(Thinlens, "thinlens")
