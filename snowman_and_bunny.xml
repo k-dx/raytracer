@@ -8,7 +8,7 @@
             <string name="fovAxis" value="x"/>
             <float name="fov" value="40"/>
 			<float name="focusDistance" value="3.5" />
-			<float name="aperture" value="22" />
+			<float name="aperture" value="2.8" />
 			<float name="focalLength" value="0.5" />
 
             <transform>
@@ -77,5 +77,5 @@
         </instance>
     </scene>
     <image id="snowman_and_bunny" />
-    <sampler type="independent" count="50"/>
+    <sampler type="independent" count="500"/>
 </integrator>
