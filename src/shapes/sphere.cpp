@@ -8,9 +8,10 @@ public:
     inline void populate(SurfaceEvent &surf, const Point &position) const {
         surf.position = position;
 
-        surf.uv.x() = (atan2f(position.z(), position.x()) + std::numbers::pi) /
-                      (2 * std::numbers::pi);
-        surf.uv.y() = (position.y() + 1) / 2;
+        surf.uv.x() =
+            atan2f(position.z(), position.x()) / (2 * std::numbers::pi);
+        // if (surf.uv.x() < 0) { surf.uv.x() = 1 + surf.uv.x(); }
+        surf.uv.y() = acos(position.y()) / std::numbers::pi;
 
         // normal should already be normalized.
         surf.shadingNormal  = Vector(position);
@@ -20,7 +21,6 @@ public:
         // in one direction is 0 0.5 is approximately 1/sqrt(3). More accuracy
         // is not needed here :)
         if (position.x() >= 0.5) {
-
             surf.tangent = Vector((-position.y() - position.z()) / position.x(),
                                   1.0f,
                                   1.0f)
