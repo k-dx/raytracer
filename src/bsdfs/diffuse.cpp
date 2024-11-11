@@ -12,13 +12,14 @@ public:
 
     BsdfEval evaluate(const Point2 &uv, const Vector &wo,
                       const Vector &wi) const override {
-        NOT_IMPLEMENTED
+        Color albedo = m_albedo->evaluate(uv);
+        return {
+            .value = albedo / std::numbers::pi,
+        };
     }
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
-                      Sampler &rng) const override {
-        NOT_IMPLEMENTED
-    }
+                      Sampler &rng) const override{ NOT_IMPLEMENTED }
 
     std::string toString() const override {
         return tfm::format(
