@@ -7,7 +7,7 @@ namespace lightwave {
 
 void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
     surf.position = m_transform->apply(surf.position);
-    surf.tangent  = surf.tangent.normalized();
+    surf.tangent  = m_transform->apply(surf.tangent).normalized();
     surf.geometryNormal =
         m_transform->applyNormal(surf.geometryNormal).normalized();
     surf.shadingNormal =

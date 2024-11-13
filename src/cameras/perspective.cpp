@@ -39,10 +39,10 @@ public:
         float rayX = normalized.x() * factorX;
         float rayY = normalized.y() * factorY;
 
-        const auto direction = Vector(rayX, rayY, 1.f).normalized();
+        const auto direction = Vector(rayX, rayY, 1.f);
 
         return CameraSample{ .ray = m_transform->apply(
-                                 Ray(Vector(0.f, 0.f, 0.f), direction)),
+                                 Ray(Vector(0.f, 0.f, 0.f), direction)).normalized(),
                              .weight = Color(1.0f) };
     }
 

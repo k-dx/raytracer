@@ -19,12 +19,12 @@ public:
         // Three different cases to account for all edge cases where the normal
         // in one direction is 0 0.5 is approximately 1/sqrt(3). More accuracy
         // is not needed here :)
-        if (position.x() >= 0.5) {
+        if (abs(position.x()) >= 0.5) {
             surf.tangent = Vector((-position.y() - position.z()) / position.x(),
                                   1.0f,
                                   1.0f)
                                .normalized();
-        } else if (position.y() >= 0.5) {
+        } else if (abs(position.y()) >= 0.5) {
             surf.tangent = Vector(1.0f,
                                   (-position.x() - position.z()) / position.y(),
                                   1.0f)
