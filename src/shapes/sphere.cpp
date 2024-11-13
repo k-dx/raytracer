@@ -10,7 +10,6 @@ public:
 
         surf.uv.x() =
             atan2f(position.x(), position.z()) / (2.f * std::numbers::pi);
-        // if (surf.uv.x() < 0) { surf.uv.x() = 1 + surf.uv.x(); }
         surf.uv.y() = acos(position.y()) / std::numbers::pi;
 
         // normal should already be normalized.

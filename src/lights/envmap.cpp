@@ -17,10 +17,18 @@ public:
     }
 
     EmissionEval evaluate(const Vector &direction) const override {
-        Point2 warped = Point2(0);
+        Vector transformed = direction;
+        if (m_transform) {
+            transformed = m_transform->inverse(direction);
+        }
+        float x = std::atan2(transformed.x(), transformed.z()) /
+                      (2.f * std::numbers::pi) +
+                  0.25f;
+        float y       = acos(transformed.y()) / std::numbers::pi;
+        Point2 warped = Point2(x, y);
         // hints:
-        // * if (m_transform) { transform direction vector from world to local
-        // coordinates }
+        // * if (m_transform) { transform direction vector from world to
+        // local coordinates }
         // * find the corresponding pixel coordinate for the given local
         // direction
         // * make use of std::atan2 instead of tangent function.
@@ -42,8 +50,8 @@ public:
         // sun for example)
 
         return {
-            .wi = direction,
-            .weight = E.value * Inv4Pi,
+            .wi       = direction,
+            .weight   = E.value * Inv4Pi,
             .distance = Infinity,
         };
     }

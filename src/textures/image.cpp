@@ -66,8 +66,8 @@ public:
         }
         }
 
-        return m_image->get(
-            Point2i(u, m_image->resolution()[1] - v - 1)); // * m_exposure;
+        return m_image->get(Point2i(u, m_image->resolution()[1] - v - 1)) *
+               m_exposure;
     }
 
     Color evaluate(const Point2 &uv) const override {
