@@ -25,7 +25,7 @@ public:
         }
 
         Color fr        = its.evaluateBsdf(directLight.wi).value;
-        float cos_theta = its.shadingNormal.dot(directLight.wi);
+        float cos_theta = abs(its.shadingNormal.dot(directLight.wi));
 
         return directLight.weight * fr * cos_theta;
     }

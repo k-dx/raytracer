@@ -9,7 +9,7 @@ public:
         surf.position = position;
 
         surf.uv.x() =
-            atan2f(position.z(), position.x()) / (2 * std::numbers::pi);
+            atan2f(position.x(), position.z()) / (2 * std::numbers::pi);
         // if (surf.uv.x() < 0) { surf.uv.x() = 1 + surf.uv.x(); }
         surf.uv.y() = acos(position.y()) / std::numbers::pi;
 

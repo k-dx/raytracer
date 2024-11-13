@@ -15,8 +15,8 @@ public:
     }
 
     Color evaluate(const Point2 &uv) const override {
-        bool checkerboardU = (int) (uv[0] * m_scale[0]) % 2;
-        bool checkerboardV = (int) (uv[1] * m_scale[1]) % 2;
+        int checkerboardU = abs((int) (uv[0] * m_scale[0]) % 2);
+        int checkerboardV = abs((int) (uv[1] * m_scale[1]) % 2);
         return checkerboardU == checkerboardV ? m_color0 : m_color1;
     }
 
