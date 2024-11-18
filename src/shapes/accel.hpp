@@ -96,7 +96,7 @@ class AccelerationStructure : public Shape {
         NodeIndex primitiveCount = 0;
 
         inline void addPrimitive(AccelerationStructure &accelStruct,
-                                 NodeIndex index) {
+                                 int index) {
             aabb.extend(accelStruct.getBoundingBox(index));
             primitiveCount++;
         }
@@ -211,6 +211,12 @@ class AccelerationStructure : public Shape {
 
         for (int axis = 0; axis < 3; axis++) {
             const float stepSize  = node.aabb.diagonal()[axis] / binCount;
+            if (stepSize < Epsilon) {
+                //there is no usefull split in this axis (primitives are aligned on one line parallel to the axis)
+                //However, there can be a usefull split in another axis
+                continue;
+            }
+
             const float boundsMin = node.aabb.min()[axis];
 
             Bin bins[binCount];
@@ -219,17 +225,18 @@ class AccelerationStructure : public Shape {
             for (NodeIndex i = node.firstPrimitiveIndex();
                  i <= node.lastPrimitiveIndex();
                  i++) {
-                NodeIndex binIdx = min(
-                    (NodeIndex) ((getCentroid(i)[axis] - boundsMin) / stepSize),
-                    binCount - 1);
-                bins[binIdx].addPrimitive(*this, i);
+                NodeIndex binIdx = clamp(
+                    (NodeIndex) ((getCentroid(m_primitiveIndices[i])[axis] - boundsMin) / stepSize),
+                    0, binCount - 1);
+                //logger(EInfo, "getCentroid %d %d %d %d %d %d %d %d", binIdx, getCentroid(m_primitiveIndices[i])[axis], boundsMin, stepSize, node.aabb.min()[axis], node.aabb.max()[axis], getBoundingBox(m_primitiveIndices[i]).min()[axis], getBoundingBox(m_primitiveIndices[i]).max()[axis]);
+                bins[binIdx].addPrimitive(*this, m_primitiveIndices[i]);
             }
-            logger(EInfo, "assigned primitives to bins");
+            //logger(EInfo, "assigned primitives to bins");
 
             Bounds leftBox, rightBox;
-            float leftArea[binCount], rightArea[binCount];
+            float leftArea[binCount - 1], rightArea[binCount - 1];
             NodeIndex leftSum = 0, rightSum = 0;
-            NodeIndex leftCount[binCount], rightCount[binCount];
+            NodeIndex leftCount[binCount - 1], rightCount[binCount - 1];
 
             // compute prefix and suffix sums on bins
             for (NodeIndex i = 0; i < binCount - 1; i++) {
@@ -238,26 +245,28 @@ class AccelerationStructure : public Shape {
                 leftSum += bins[i].primitiveCount;
                 leftCount[i] = leftSum;
 
-                rightBox.extend(bins[binCount - i - 1].aabb);
-                rightArea[binCount - i - 1] = surfaceArea(rightBox);
-                rightSum += bins[binCount - i - 1].primitiveCount;
-                rightCount[binCount - i - 1] = rightSum;
+                rightBox.extend(bins[binCount - i - 2].aabb);
+                rightArea[binCount - i - 2] = surfaceArea(rightBox);
+                rightSum += bins[binCount - i - 2].primitiveCount;
+                rightCount[binCount - i - 2] = rightSum;
             }
-            logger(EInfo, "computed prefix and suffix");
+            //logger(EInfo, "computed prefix and suffix");
 
             // find split with lowest surface area
             for (NodeIndex i = 0; i < binCount - 1; i++) {
-                if (leftCount[i] > 0 && rightCount[i + 1] > 0) {
+                if (leftCount[i] > 0 && rightCount[i] > 0) {
                     float sah = leftCount[i] * leftArea[i] +
-                                rightCount[i + 1] * rightArea[i + 1];
+                                rightCount[i] * rightArea[i];
+                    /*
                     logger(EInfo, "-----");
                     logger(EInfo,
                            "%f %f %f %f",
                            leftCount[i],
                            leftArea[i],
-                           rightCount[i + 1],
-                           rightArea[i + 1]);
+                           rightCount[i],
+                           rightArea[i]);
                     logger(EInfo, "%d %d %d", axis, sah, lowestSAH);
+                    */
                     if (sah < lowestSAH) {
                         lowestSAH         = sah;
                         bestSplitPosition = boundsMin + (i + 1) * stepSize;
@@ -265,9 +274,9 @@ class AccelerationStructure : public Shape {
                     }
                 }
             }
-            logger(EInfo, "check if more optimal split found");
+            //logger(EInfo, "check if more optimal split found");
         }
-        logger(EInfo, "%d %d %d", bestSplitAxis, bestSplitPosition, lowestSAH);
+        //logger(EInfo, "%d %d %d", bestSplitAxis, bestSplitPosition, lowestSAH);
     }
 
     /// @brief Attempts to subdivide a given BVH node.
