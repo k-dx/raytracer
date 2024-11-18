@@ -10,16 +10,16 @@ namespace lightwave {
 
 /**
  * @brief Parent class for shapes that combine many individual shapes (e.g.,
- * triangle meshes), and hence benefit from building an acceleration structure
- * over their children.
+ * triangle meshes), and hence benefit from building an acceleration
+ * structure over their children.
  *
  * To use this class, you will need to implement the following methods:
- * - numberOfPrimitives()           -- report the number of individual children
- * that the shape has
- * - intersect(primitiveIndex, ...) -- intersect a single child (identified by
- * the given index) for the given ray
- * - getBoundingBox(primitiveIndex) -- return the bounding box of a single child
- * (used for building the BVH)
+ * - numberOfPrimitives()           -- report the number of individual
+ * children that the shape has
+ * - intersect(primitiveIndex, ...) -- intersect a single child (identified
+ * by the given index) for the given ray
+ * - getBoundingBox(primitiveIndex) -- return the bounding box of a single
+ * child (used for building the BVH)
  * - getCentroid(primitiveIndex)    -- return the centroid of a single child
  * (used for building the BVH)
  *
@@ -39,13 +39,13 @@ class AccelerationStructure : public Shape {
         Bounds aabb;
         /**
          * @brief Either the index of the left child node in m_nodes (for
-         * internal nodes), or the first primitive in m_primitiveIndices (for
-         * leaf nodes).
-         * @note For efficiency, we store the BVH nodes so that the right child
-         * always directly follows the left child, i.e., the index of the right
-         * child is always @code leftFirst + 1 @endcode .
-         * @note For efficiency, we store primitives so that children of a leaf
-         * node are always contigous in m_primitiveIndices.
+         * internal nodes), or the first primitive in m_primitiveIndices
+         * (for leaf nodes).
+         * @note For efficiency, we store the BVH nodes so that the right
+         * child always directly follows the left child, i.e., the index of
+         * the right child is always @code leftFirst + 1 @endcode .
+         * @note For efficiency, we store primitives so that children of a
+         * leaf node are always contigous in m_primitiveIndices.
          */
         NodeIndex leftFirst;
         /// @brief The number of primitives in a leaf node, or 0 to indicate
@@ -64,8 +64,8 @@ class AccelerationStructure : public Shape {
 
         /// @brief For leaf nodes: The first index in m_primitiveIndices.
         NodeIndex firstPrimitiveIndex() const { return leftFirst; }
-        /// @brief For leaf nodes: The last index in m_primitiveIndices (still
-        /// included).
+        /// @brief For leaf nodes: The last index in m_primitiveIndices
+        /// (still included).
         NodeIndex lastPrimitiveIndex() const {
             return leftFirst + primitiveCount - 1;
         }
@@ -74,13 +74,14 @@ class AccelerationStructure : public Shape {
     /// @brief A list of all BVH nodes.
     std::vector<Node> m_nodes;
     /**
-     * @brief Mapping from internal @c NodeIndex to @c primitiveIndex as used by
-     * all interface methods. For efficient storage, we assume that children of
-     * BVH leaf nodes have contiguous indices, which would require re-ordering
-     * the primitives. For simplicity, we instead perform this re-ordering on a
-     * list of indices (which starts of as @code 0, 1, 2, ..., primitiveCount -
-     * 1 @endcode ), which allows us to translate from re-ordered (contiguous)
-     * indices to the indices the user of this class expects.
+     * @brief Mapping from internal @c NodeIndex to @c primitiveIndex as
+     * used by all interface methods. For efficient storage, we assume that
+     * children of BVH leaf nodes have contiguous indices, which would
+     * require re-ordering the primitives. For simplicity, we instead
+     * perform this re-ordering on a list of indices (which starts of as
+     * @code 0, 1, 2, ..., primitiveCount - 1 @endcode ), which allows us to
+     * translate from re-ordered (contiguous) indices to the indices the
+     * user of this class expects.
      */
     std::vector<int> m_primitiveIndices;
 
@@ -90,14 +91,25 @@ class AccelerationStructure : public Shape {
         return m_nodes.front();
     }
 
+    struct Bin {
+        Bounds aabb;
+        NodeIndex primitiveCount = 0;
+
+        inline void addPrimitive(AccelerationStructure &accelStruct,
+                                 NodeIndex index) {
+            aabb.extend(accelStruct.getBoundingBox(index));
+            primitiveCount++;
+        }
+    };
+
     /**
      * @brief Intersects a BVH node, recursing into children (for internal
      * nodes), or intersecting all primitives (for leaf nodes).
      */
     bool intersectNode(const Node &node, const Ray &ray, Intersection &its,
                        Sampler &rng) const {
-        // update the statistic tracking how many BVH nodes have been tested for
-        // intersection
+        // update the statistic tracking how many BVH nodes have been tested
+        // for intersection
         its.stats.bvhCounter++;
 
         bool wasIntersected = false;
@@ -119,16 +131,16 @@ class AccelerationStructure : public Shape {
                 intersectAABB(m_nodes[node.leftChildIndex()].aabb, ray);
             const auto rightT =
                 intersectAABB(m_nodes[node.rightChildIndex()].aabb, ray);
-            if (leftT < rightT) { // left child is hit first; test left child
-                                  // first, then right child
+            if (leftT < rightT) { // left child is hit first; test left
+                                  // child first, then right child
                 if (leftT < its.t)
                     wasIntersected |= intersectNode(
                         m_nodes[node.leftChildIndex()], ray, its, rng);
                 if (rightT < its.t)
                     wasIntersected |= intersectNode(
                         m_nodes[node.rightChildIndex()], ray, its, rng);
-            } else { // right child is hit first; test right child first, then
-                     // left child
+            } else { // right child is hit first; test right child first,
+                     // then left child
                 if (rightT < its.t)
                     wasIntersected |= intersectNode(
                         m_nodes[node.rightChildIndex()], ray, its, rng);
@@ -144,14 +156,15 @@ class AccelerationStructure : public Shape {
     /// returning Infinity in case the ray misses.
     float intersectAABB(const Bounds &bounds, const Ray &ray) const {
         const auto t1 = (bounds.min() - ray.origin) / ray.direction;
-        // intersect all axes at once with the maximum slabs of the bounding box
+        // intersect all axes at once with the maximum slabs of the bounding
+        // box
         const auto t2 = (bounds.max() - ray.origin) / ray.direction;
 
         // the elementwiseMin picks the near slab for each axis, of which we
         // then take the maximum
         const auto tNear = elementwiseMin(t1, t2).maxComponent();
-        // the elementwiseMax picks the far slab for each axis, of which we then
-        // take the minimum
+        // the elementwiseMax picks the far slab for each axis, of which we
+        // then take the minimum
         const auto tFar = elementwiseMax(t1, t2).minComponent();
 
         if (tFar < tNear)
@@ -181,17 +194,80 @@ class AccelerationStructure : public Shape {
     }
 
     /**
-     * For a given node, computes split axis and split position that minimize
-     * the surface area heuristic.
+     * For a given node, computes split axis and split position that
+     * minimize the surface area heuristic.
      * @param node The BVH node to compute the split for.
-     * @param out bestSplitAxis The optimal split axis, or -1 if no useful split
-     * exists
-     * @param out bestSplitPosition The optimal split position, undefined if no
-     * useful split exists
+     * @param out bestSplitAxis The optimal split axis, or -1 if no useful
+     * split exists
+     * @param out bestSplitPosition The optimal split position, undefined if
+     * no useful split exists
      */
     void binning(const Node &node, int &bestSplitAxis,
                  float &bestSplitPosition) {
-        NOT_IMPLEMENTED
+        static constexpr NodeIndex binCount = 16;
+
+        float lowestSAH = surfaceArea(node.aabb) * node.primitiveCount;
+        bestSplitAxis   = -1;
+
+        for (int axis = 0; axis < 3; axis++) {
+            const float stepSize  = node.aabb.diagonal()[axis] / binCount;
+            const float boundsMin = node.aabb.min()[axis];
+
+            Bin bins[binCount];
+
+            // assign the primitives to bins
+            for (NodeIndex i = node.firstPrimitiveIndex();
+                 i <= node.lastPrimitiveIndex();
+                 i++) {
+                NodeIndex binIdx = min(
+                    (NodeIndex) ((getCentroid(i)[axis] - boundsMin) / stepSize),
+                    binCount - 1);
+                bins[binIdx].addPrimitive(*this, i);
+            }
+            logger(EInfo, "assigned primitives to bins");
+
+            Bounds leftBox, rightBox;
+            float leftArea[binCount], rightArea[binCount];
+            NodeIndex leftSum = 0, rightSum = 0;
+            NodeIndex leftCount[binCount], rightCount[binCount];
+
+            // compute prefix and suffix sums on bins
+            for (NodeIndex i = 0; i < binCount - 1; i++) {
+                leftBox.extend(bins[i].aabb);
+                leftArea[i] = surfaceArea(leftBox);
+                leftSum += bins[i].primitiveCount;
+                leftCount[i] = leftSum;
+
+                rightBox.extend(bins[binCount - i - 1].aabb);
+                rightArea[binCount - i - 1] = surfaceArea(rightBox);
+                rightSum += bins[binCount - i - 1].primitiveCount;
+                rightCount[binCount - i - 1] = rightSum;
+            }
+            logger(EInfo, "computed prefix and suffix");
+
+            // find split with lowest surface area
+            for (NodeIndex i = 0; i < binCount - 1; i++) {
+                if (leftCount[i] > 0 && rightCount[i + 1] > 0) {
+                    float sah = leftCount[i] * leftArea[i] +
+                                rightCount[i + 1] * rightArea[i + 1];
+                    logger(EInfo, "-----");
+                    logger(EInfo,
+                           "%f %f %f %f",
+                           leftCount[i],
+                           leftArea[i],
+                           rightCount[i + 1],
+                           rightArea[i + 1]);
+                    logger(EInfo, "%d %d %d", axis, sah, lowestSAH);
+                    if (sah < lowestSAH) {
+                        lowestSAH         = sah;
+                        bestSplitPosition = boundsMin + (i + 1) * stepSize;
+                        bestSplitAxis     = axis;
+                    }
+                }
+            }
+            logger(EInfo, "check if more optimal split found");
+        }
+        logger(EInfo, "%d %d %d", bestSplitAxis, bestSplitPosition, lowestSAH);
     }
 
     /// @brief Attempts to subdivide a given BVH node.
@@ -202,7 +278,7 @@ class AccelerationStructure : public Shape {
         }
 
         // set to true when implementing binning
-        static constexpr bool UseSAH = false;
+        static constexpr bool UseSAH = true;
 
         int splitAxis = -1;
         float splitPosition;
@@ -220,10 +296,10 @@ class AccelerationStructure : public Shape {
             return;
         }
 
-        // the point at which to split (note that primitives must be re-ordered
-        // so that all children of the left node will have a smaller index than
-        // firstRightIndex, and nodes on the right will have an index larger or
-        // equal to firstRightIndex)
+        // the point at which to split (note that primitives must be
+        // re-ordered so that all children of the left node will have a
+        // smaller index than firstRightIndex, and nodes on the right will
+        // have an index larger or equal to firstRightIndex)
         NodeIndex firstRightIndex = parent.firstPrimitiveIndex();
         NodeIndex lastLeftIndex   = parent.lastPrimitiveIndex();
 
@@ -270,11 +346,11 @@ class AccelerationStructure : public Shape {
     }
 
 protected:
-    /// @brief Returns the number of children (individual shapes) that are part
-    /// of this acceleration structure.
+    /// @brief Returns the number of children (individual shapes) that are
+    /// part of this acceleration structure.
     virtual int numberOfPrimitives() const = 0;
-    /// @brief Intersect a single child (identified by the index) with the given
-    /// ray.
+    /// @brief Intersect a single child (identified by the index) with the
+    /// given ray.
     virtual bool intersect(int primitiveIndex, const Ray &ray,
                            Intersection &its, Sampler &rng) const = 0;
     /// @brief Returns the axis aligned bounding box of the given child.
