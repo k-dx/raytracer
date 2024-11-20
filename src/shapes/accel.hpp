@@ -256,9 +256,9 @@ class AccelerationStructure : public Shape {
                 leftSum += bins[i].primitiveCount;
                 leftCount[i] = leftSum;
 
-                rightBox.extend(bins[binCount - i - 2].aabb);
+                rightBox.extend(bins[binCount - i - 1].aabb);
                 rightArea[binCount - i - 2] = surfaceArea(rightBox);
-                rightSum += bins[binCount - i - 2].primitiveCount;
+                rightSum += bins[binCount - i - 1].primitiveCount;
                 rightCount[binCount - i - 2] = rightSum;
             }
             // logger(EInfo, "computed prefix and suffix");
