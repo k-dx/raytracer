@@ -95,9 +95,8 @@ class AccelerationStructure : public Shape {
         Bounds aabb;
         NodeIndex primitiveCount = 0;
 
-        inline void addPrimitive(AccelerationStructure &accelStruct,
-                                 int index) {
-            aabb.extend(accelStruct.getBoundingBox(index));
+        inline void add(Bounds bounds) {
+            aabb.extend(bounds);
             primitiveCount++;
         }
     };
@@ -206,6 +205,7 @@ class AccelerationStructure : public Shape {
                  float &bestSplitPosition) {
         static constexpr NodeIndex binCount = 16;
 
+        //float fullArea = surfaceArea(node.aabb) * node.primitiveCount;
         float lowestSAH = surfaceArea(node.aabb) * node.primitiveCount;
         bestSplitAxis   = -1;
 
@@ -220,6 +220,7 @@ class AccelerationStructure : public Shape {
             const float boundsMin = node.aabb.min()[axis];
 
             Bin bins[binCount];
+            //logger(EInfo, "assigned primitives to bins %d", );
 
             // assign the primitives to bins
             for (NodeIndex i = node.firstPrimitiveIndex();
@@ -229,9 +230,18 @@ class AccelerationStructure : public Shape {
                     (NodeIndex) ((getCentroid(m_primitiveIndices[i])[axis] - boundsMin) / stepSize),
                     0, binCount - 1);
                 //logger(EInfo, "getCentroid %d %d %d %d %d %d %d %d", binIdx, getCentroid(m_primitiveIndices[i])[axis], boundsMin, stepSize, node.aabb.min()[axis], node.aabb.max()[axis], getBoundingBox(m_primitiveIndices[i]).min()[axis], getBoundingBox(m_primitiveIndices[i]).max()[axis]);
-                bins[binIdx].addPrimitive(*this, m_primitiveIndices[i]);
+                bins[binIdx].add(getBoundingBox(m_primitiveIndices[i]));
             }
             //logger(EInfo, "assigned primitives to bins");
+
+            /*
+            int binSum = 0;
+            for (int i = 0; i < binCount; i++) {
+                binSum += bins[i].primitiveCount;
+            }
+            assert_condition(binSum == node.primitiveCount, );
+            logger(EInfo, "%d %d", binSum, node.primitiveCount);
+            */
 
             Bounds leftBox, rightBox;
             float leftArea[binCount - 1], rightArea[binCount - 1];
@@ -245,15 +255,16 @@ class AccelerationStructure : public Shape {
                 leftSum += bins[i].primitiveCount;
                 leftCount[i] = leftSum;
 
-                rightBox.extend(bins[binCount - i - 2].aabb);
+                rightBox.extend(bins[binCount - i - 1].aabb);
                 rightArea[binCount - i - 2] = surfaceArea(rightBox);
-                rightSum += bins[binCount - i - 2].primitiveCount;
+                rightSum += bins[binCount - i - 1].primitiveCount;
                 rightCount[binCount - i - 2] = rightSum;
             }
             //logger(EInfo, "computed prefix and suffix");
 
             // find split with lowest surface area
             for (NodeIndex i = 0; i < binCount - 1; i++) {
+                assert_condition(leftCount[i] + rightCount[i] == node.primitiveCount, logger(EInfo, "primitive counts mismatch %d %d %d %d %d", i, leftCount[i], rightCount[i], leftCount[i] + rightCount[i], node.primitiveCount));
                 if (leftCount[i] > 0 && rightCount[i] > 0) {
                     float sah = leftCount[i] * leftArea[i] +
                                 rightCount[i] * rightArea[i];
