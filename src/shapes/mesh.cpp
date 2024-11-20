@@ -74,30 +74,27 @@ protected:
         const Vector c = Vector(ray.origin) - v1;
 
         Matrix3x3 m;
-
         m.setColumn(0, -ray.direction);
         m.setColumn(1, v2 - v1);
         m.setColumn(2, v3 - v1);
-
-        Matrix3x3 mt = m;
-        Matrix3x3 mu = m;
-        Matrix3x3 mv = m;
-
-        mt.setColumn(0, c);
-        mu.setColumn(1, c);
-        mv.setColumn(2, c);
         float detM = m.determinant();
 
-        if (detM == 0.0f) {
+        if (abs(detM) < .0000001f) {
             return false;
         }
 
+        Matrix3x3 mt = m;
+        mt.setColumn(0, c);
         float t = mt.determinant() / detM;
 
         if (t < Epsilon || t > its.t) {
             return false;
         }
 
+        Matrix3x3 mu = m;
+        Matrix3x3 mv = m;
+        mu.setColumn(1, c);
+        mv.setColumn(2, c);
         float u = mu.determinant() / detM;
         float v = mv.determinant() / detM;
 
