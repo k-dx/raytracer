@@ -205,15 +205,17 @@ class AccelerationStructure : public Shape {
                  float &bestSplitPosition) {
         static constexpr NodeIndex binCount = 16;
 
+        // find smallest box that contains all centroids
+        Bounds centroidBounds;
+        for (int i = node.firstPrimitiveIndex(); i <= node.lastPrimitiveIndex();
+             i++) {
+            centroidBounds.extend(getCentroid(m_primitiveIndices[i]));
+        }
+
         float lowestSAH = surfaceArea(node.aabb) * node.primitiveCount;
         bestSplitAxis   = -1;
 
         for (int axis = 0; axis < 3; axis++) {
-            //find smallest box that contains all centroids
-            Bounds centroidBounds;
-            for (int i = node.firstPrimitiveIndex(); i <= node.lastPrimitiveIndex(); i++) {
-                centroidBounds.extend(getCentroid(m_primitiveIndices[i]));
-            }
 
             const float stepSize = centroidBounds.diagonal()[axis] / binCount;
             if (stepSize < Epsilon) {
@@ -231,18 +233,20 @@ class AccelerationStructure : public Shape {
             for (NodeIndex i = node.firstPrimitiveIndex();
                  i <= node.lastPrimitiveIndex();
                  i++) {
-                assert_condition(getCentroid(m_primitiveIndices[i])[axis] + Epsilon >= getBoundingBox(m_primitiveIndices[i]).min()[axis], logger(EInfo, "%d %d", getCentroid(m_primitiveIndices[i])[axis], getBoundingBox(m_primitiveIndices[i]).min()[axis]));
-                assert_condition(getCentroid(m_primitiveIndices[i])[axis] - Epsilon <= getBoundingBox(m_primitiveIndices[i]).max()[axis], logger(EInfo, "%d %d", getCentroid(m_primitiveIndices[i])[axis], getBoundingBox(m_primitiveIndices[i]).max()[axis]));
                 NodeIndex binIdx = clamp(
-                    (NodeIndex) ((getCentroid(m_primitiveIndices[i])[axis] - boundsMin) / stepSize),
-                    0, binCount - 1);
+                    (NodeIndex) ((getCentroid(m_primitiveIndices[i])[axis] -
+                                  boundsMin) /
+                                 stepSize),
+                    0,
+                    binCount - 1);
                 bins[binIdx].add(getBoundingBox(m_primitiveIndices[i]));
             }
 
             Bounds leftBox, rightBox;
             NodeIndex leftSum = 0, rightSum = 0;
             // leftArea[i], leftCount[i] contains bins 0, 1, ..., i
-            // rightArea[i],rightCount[i] contains bins i+1, i+2, ..., binCount-1
+            // rightArea[i], rightCount[i] contains bins
+            //     i+1, i+2, ..., binCount-1
             float leftArea[binCount - 1], rightArea[binCount - 1];
             NodeIndex leftCount[binCount - 1], rightCount[binCount - 1];
 
