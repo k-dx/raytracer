@@ -20,11 +20,11 @@ public:
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
-        Vector wi = squareToUniformHemisphere(rng.next2D());
+        Vector wi = squareToCosineHemisphere(rng.next2D());
 
         const float cos_theta = wi[2];
         const Color weight =
-            evaluate(uv, wo, wi).value * cos_theta * uniformHemispherePdf();
+            evaluate(uv, wo, wi).value * cos_theta * cosineHemispherePdf(wi);
         return {
             .wi     = wi,
             .weight = weight,
