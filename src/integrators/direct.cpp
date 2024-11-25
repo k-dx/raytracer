@@ -46,24 +46,26 @@ public:
         Color emissionContribution = Color(0);
         const BsdfSample emission  = its.sampleBsdf(rng);
         if (emission) {
-            const Ray emissionRay(its.position, -emission.wi);
+            const Ray emissionRay(its.position, emission.wi);
             const Intersection emissionIts =
                 m_scene->intersect(emissionRay, rng);
 
             if (emissionIts) {
-                if (emissionIts.lightProbability >= Epsilon) {
-                    logger(EInfo, "intersection");
+                EmissionEval emissionEval = emissionIts.evaluateEmission();
+                if (emissionEval) {
+                    //logger(EInfo, "intersection evaluated");
+                //}
+                //if (emissionIts.lightProbability >= Epsilon) {
+                    //logger(EInfo, "intersection");
                     const float cos_theta = abs(its.shadingNormal.dot(emission.wi));
 
-                    emissionContribution = emissionIts.evaluateEmission().value;
-                    /*    emissionIts.evaluateEmission().value /
-                        emissionIts.lightProbability * emission.weight *
-                        cos_theta;
-                    */
+                    emissionContribution =
+                        emissionEval.value * emission.weight * cos_theta;
                 }
             } else {
+                const float cos_theta = abs(its.shadingNormal.dot(emission.wi));
                 emissionContribution =
-                    emissionIts.evaluateEmission().value * emission.weight;
+                    emissionIts.evaluateEmission().value * emission.weight * cos_theta;
             }
 
             // logger(EInfo, "Im still alive");
