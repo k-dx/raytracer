@@ -18,51 +18,56 @@ public:
         // Delta lights
         const LightSample lightSample = m_scene->sampleLight(rng);
         const Light *light            = lightSample.light;
-        const DirectLightSample directLight =
-            light->sampleDirect(its.position, rng);
+        Color lightContribution       = Color::black();
 
-        const Ray lightRay(its.position, directLight.wi);
+        if (light) {
+            const DirectLightSample directLight =
+                light->sampleDirect(its.position, rng);
 
-        Color lightContribution;
-        const Intersection lightIts = m_scene->intersect(lightRay, rng);
-        if (directLight.distance < Epsilon ||
-            (lightIts && lightIts.t - Epsilon < directLight.distance)) {
-            // light is occluded
-            lightContribution = Color::black();
-        } else {
-            const Color fr = its.evaluateBsdf(directLight.wi).value;
+            const Ray lightRay(its.position, directLight.wi);
 
-            const float cos_theta = abs(its.shadingNormal.dot(directLight.wi));
+            const Intersection lightOcclusionIts =
+                m_scene->intersect(lightRay, rng);
+            if (directLight.distance >= Epsilon &&
+                (!lightOcclusionIts ||
+                 lightOcclusionIts.t - Epsilon >= directLight.distance)) {
 
-            lightContribution =
-                directLight.weight * cos_theta * fr / lightSample.probability;
+                const Color fr = its.evaluateBsdf(directLight.wi).value;
+
+                const float cos_theta =
+                    abs(its.shadingNormal.dot(directLight.wi));
+
+                lightContribution = directLight.weight * cos_theta * fr /
+                                    lightSample.probability;
+            }
         }
 
         // Emissive shapes
-        // const BsdfSample emission = its.sampleBsdf(rng);
-        // const Ray emissionRay(its.position, emission.wi);
-        // const Intersection emissionIts = m_scene->intersect(emissionRay,
-        // rng);
-
         Color emissionContribution = Color(0);
-        // if (emissionIts) {
-        //     if (emissionIts.lightProbability < Epsilon) {
-        //         emissionContribution = Color(0);
-        //     } else {
-        //         const float cos_theta =
-        //         abs(its.shadingNormal.dot(emission.wi));
+        const BsdfSample emission  = its.sampleBsdf(rng);
+        if (emission) {
+            const Ray emissionRay(its.position, -emission.wi);
+            const Intersection emissionIts =
+                m_scene->intersect(emissionRay, rng);
 
-        //         emissionContribution =
-        //             emissionIts.evaluateBsdf(-emission.wi).value /
-        //             emissionIts.lightProbability * emission.weight *
-        //             cos_theta;
-        //     }
-        // } else {
-        //     emissionContribution =
-        //         emissionIts.evaluateEmission().value * emission.weight;
-        // }
+            if (emissionIts) {
+                if (emissionIts.lightProbability >= Epsilon) {
+                    logger(EInfo, "intersection");
+                    const float cos_theta = abs(its.shadingNormal.dot(emission.wi));
 
-        // logger(EInfo, "Im still alive");
+                    emissionContribution = emissionIts.evaluateEmission().value;
+                    /*    emissionIts.evaluateEmission().value /
+                        emissionIts.lightProbability * emission.weight *
+                        cos_theta;
+                    */
+                }
+            } else {
+                emissionContribution =
+                    emissionIts.evaluateEmission().value * emission.weight;
+            }
+
+            // logger(EInfo, "Im still alive");
+        }
 
         return lightContribution + emissionContribution;
     }

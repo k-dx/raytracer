@@ -44,15 +44,15 @@ public:
         const float oo = Vector(ray.origin).dot(Vector(ray.origin));
         // since the ray direction is normalized, we have dd=1
         const float radicant = od * od - oo + 1.f;
-        if (radicant <= 0.0f) {
+        if (radicant < Epsilon) {
             return false;
         }
         const float root = sqrt(radicant);
 
-        // https://people.csail.mit.edu/bkph/articles/Quadratics.pdf
-        const float t1 = od >= 0 ? (-od - root) : (oo - 1.f) / (-od + root);
-        const float t2 = od >= 0 ? (oo - 1.f) / (-od - root) : (-od + root);
-        const float t  = (t2 < t1 && t2 > Epsilon) || t1 <= Epsilon ? t2 : t1;
+        const float t1 = -od + root;
+        const float t2 = -od - root;
+
+        const float t = (t2 < t1 && t2 > Epsilon) || t1 <= Epsilon ? t2 : t1;
         if (t < Epsilon || t > its.t) {
             return false;
         }

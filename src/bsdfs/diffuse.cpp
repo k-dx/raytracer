@@ -20,11 +20,22 @@ public:
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
+        //const Vector wi = squareToUniformHemisphere(rng.next2D());
         const Vector wi = squareToCosineHemisphere(rng.next2D());
 
         const float cos_theta = wi[2];
-        const Color weight =
-            evaluate(uv, wo, wi).value * cos_theta * cosineHemispherePdf(wi);
+        const Color weight    = evaluate(uv, wo, wi).value * cos_theta *
+                             //uniformHemispherePdf();
+                             cosineHemispherePdf(wi);
+
+        assert_condition(wi.length() < 1.f + Epsilon &&
+                             wi.length() > 1.f - Epsilon, );
+        assert_condition(!std::isnan(wi[0]), );
+        assert_condition(!std::isnan(wi[1]), );
+        assert_condition(!std::isnan(wi[2]), );
+
+        assert_condition(!std::isnan(wi.length()), );
+
         return {
             .wi     = wi,
             .weight = weight,
