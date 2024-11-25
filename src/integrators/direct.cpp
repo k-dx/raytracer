@@ -71,7 +71,7 @@ public:
             // logger(EInfo, "Im still alive");
         }
 
-        return lightContribution + emissionContribution;
+        return lightContribution + emissionContribution + its.evaluateEmission().value;
     }
 
     std::string toString() const override {
