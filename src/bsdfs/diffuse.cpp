@@ -12,7 +12,7 @@ public:
 
     BsdfEval evaluate(const Point2 &uv, const Vector &wo,
                       const Vector &wi) const override {
-        Color albedo = m_albedo->evaluate(uv);
+        const Color albedo = m_albedo->evaluate(uv);
         return {
             .value = albedo / std::numbers::pi,
         };
@@ -20,7 +20,7 @@ public:
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
-        Vector wi = squareToCosineHemisphere(rng.next2D());
+        const Vector wi = squareToCosineHemisphere(rng.next2D());
 
         const float cos_theta = wi[2];
         const Color weight =

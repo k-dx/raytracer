@@ -8,26 +8,63 @@ public:
         : SamplingIntegrator(properties) {}
 
     Color Li(const Ray &ray, Sampler &rng) override {
-        Intersection its = m_scene->intersect(ray, rng);
+        // logger(EInfo, "Entered Li");
+        // Scene intersection
+        const Intersection its = m_scene->intersect(ray, rng);
         if (!its) {
             return its.evaluateEmission().value;
         }
 
-        const Light *light            = m_scene->sampleLight(rng).light;
-        DirectLightSample directLight = light->sampleDirect(its.position, rng);
+        // Delta lights
+        const LightSample lightSample = m_scene->sampleLight(rng);
+        const Light *light            = lightSample.light;
+        const DirectLightSample directLight =
+            light->sampleDirect(its.position, rng);
 
         const Ray lightRay(its.position, directLight.wi);
 
-        Intersection lightIts = m_scene->intersect(lightRay, rng);
+        Color lightContribution;
+        const Intersection lightIts = m_scene->intersect(lightRay, rng);
         if (directLight.distance < Epsilon ||
             (lightIts && lightIts.t - Epsilon < directLight.distance)) {
-            return Color::black();
+            // light is occluded
+            lightContribution = Color::black();
+        } else {
+            const Color fr = its.evaluateBsdf(directLight.wi).value;
+
+            const float cos_theta = abs(its.shadingNormal.dot(directLight.wi));
+
+            lightContribution =
+                directLight.weight * cos_theta * fr / lightSample.probability;
         }
 
-        Color fr        = its.evaluateBsdf(directLight.wi).value;
-        float cos_theta = abs(its.shadingNormal.dot(directLight.wi));
+        // Emissive shapes
+        // const BsdfSample emission = its.sampleBsdf(rng);
+        // const Ray emissionRay(its.position, emission.wi);
+        // const Intersection emissionIts = m_scene->intersect(emissionRay,
+        // rng);
 
-        return directLight.weight * fr * cos_theta;
+        Color emissionContribution = Color(0);
+        // if (emissionIts) {
+        //     if (emissionIts.lightProbability < Epsilon) {
+        //         emissionContribution = Color(0);
+        //     } else {
+        //         const float cos_theta =
+        //         abs(its.shadingNormal.dot(emission.wi));
+
+        //         emissionContribution =
+        //             emissionIts.evaluateBsdf(-emission.wi).value /
+        //             emissionIts.lightProbability * emission.weight *
+        //             cos_theta;
+        //     }
+        // } else {
+        //     emissionContribution =
+        //         emissionIts.evaluateEmission().value * emission.weight;
+        // }
+
+        // logger(EInfo, "Im still alive");
+
+        return lightContribution + emissionContribution;
     }
 
     std::string toString() const override {
