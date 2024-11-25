@@ -19,7 +19,17 @@ public:
     }
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
-                      Sampler &rng) const override{ NOT_IMPLEMENTED }
+                      Sampler &rng) const override {
+        Vector wi = squareToUniformHemisphere(rng.next2D());
+
+        const float cos_theta = wi[2];
+        const Color weight =
+            evaluate(uv, wo, wi).value * cos_theta * uniformHemispherePdf();
+        return {
+            .wi     = wi,
+            .weight = weight,
+        };
+    }
 
     std::string toString() const override {
         return tfm::format(
