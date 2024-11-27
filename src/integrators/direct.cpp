@@ -50,28 +50,25 @@ public:
             const Intersection emissionIts =
                 m_scene->intersect(emissionRay, rng);
 
-            if (emissionIts) {
-                EmissionEval emissionEval = emissionIts.evaluateEmission();
-                if (emissionEval) {
-                    //logger(EInfo, "intersection evaluated");
-                //}
-                //if (emissionIts.lightProbability >= Epsilon) {
-                    //logger(EInfo, "intersection");
-                    const float cos_theta = abs(its.shadingNormal.dot(emission.wi));
-
-                    emissionContribution =
-                        emissionEval.value * emission.weight * cos_theta;
-                }
-            } else {
-                const float cos_theta = abs(its.shadingNormal.dot(emission.wi));
-                emissionContribution =
-                    emissionIts.evaluateEmission().value * emission.weight * cos_theta;
-            }
+            EmissionEval emissionEval = emissionIts.evaluateEmission();
+            const float cos_theta     = abs(its.shadingNormal.dot(emission.wi));
+            emissionContribution =
+                emissionEval.value * emission.weight * cos_theta;
+            // if (emissionIts) {
+            //     if (emissionEval) {
+            //         emissionContribution =
+            //             emissionEval.value * emission.weight * cos_theta;
+            //     }
+            // } else {
+            //     emissionContribution =
+            //         emissionEval.value * emission.weight * cos_theta;
+            // }
 
             // logger(EInfo, "Im still alive");
         }
 
-        return lightContribution + emissionContribution + its.evaluateEmission().value;
+        return lightContribution + emissionContribution +
+               its.evaluateEmission().value;
     }
 
     std::string toString() const override {
