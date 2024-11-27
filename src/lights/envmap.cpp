@@ -24,7 +24,7 @@ public:
         float x = std::atan2(transformed.x(), transformed.z()) /
                       (2.f * std::numbers::pi) +
                   0.25f;
-        float y       = acos(transformed.y()) / std::numbers::pi;
+        float y       = safe_acos(transformed.y()) / std::numbers::pi;
         Point2 warped = Point2(x, y);
         // hints:
         // * if (m_transform) { transform direction vector from world to
