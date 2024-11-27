@@ -52,6 +52,7 @@ public:
 
             EmissionEval emissionEval = emissionIts.evaluateEmission();
             const float cos_theta     = abs(its.shadingNormal.dot(emission.wi));
+
             emissionContribution =
                 emissionEval.value * emission.weight * cos_theta;
             // if (emissionIts) {
