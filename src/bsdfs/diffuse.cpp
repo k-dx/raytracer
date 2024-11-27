@@ -24,9 +24,12 @@ public:
         const Vector wi = squareToCosineHemisphere(rng.next2D());
 
         const float cos_theta = wi[2];
-        const Color weight    = evaluate(uv, wo, wi).value
-                             // uniformHemispherePdf();
-                             / cosineHemispherePdf(wi);
+        Color weight          = Color::white();
+        if (cosineHemispherePdf(wi) != 0.f) {
+            weight = evaluate(uv, wo, wi).value * cos_theta /
+                     cosineHemispherePdf(wi);
+            // uniformHemispherePdf();
+        }
 
         assert_condition(wi.length() < 1.f + Epsilon &&
                              wi.length() > 1.f - Epsilon, );

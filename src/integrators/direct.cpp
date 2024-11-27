@@ -8,7 +8,6 @@ public:
         : SamplingIntegrator(properties) {}
 
     Color Li(const Ray &ray, Sampler &rng) override {
-        // logger(EInfo, "Entered Li");
         // Scene intersection
         const Intersection its = m_scene->intersect(ray, rng);
         if (!its) {
@@ -51,21 +50,11 @@ public:
                 m_scene->intersect(emissionRay, rng);
 
             EmissionEval emissionEval = emissionIts.evaluateEmission();
-            const float cos_theta     = abs(its.shadingNormal.dot(emission.wi));
 
-            emissionContribution =
-                emissionEval.value * emission.weight * cos_theta;
-            // if (emissionIts) {
-            //     if (emissionEval) {
-            //         emissionContribution =
-            //             emissionEval.value * emission.weight * cos_theta;
-            //     }
-            // } else {
-            //     emissionContribution =
-            //         emissionEval.value * emission.weight * cos_theta;
-            // }
+            assert_condition(!std::isnan(emissionEval.value[0]), );
+            assert_condition(!std::isnan(emission.weight[0]), );
 
-            // logger(EInfo, "Im still alive");
+            emissionContribution = emissionEval.value * emission.weight;
         }
 
         return lightContribution + emissionContribution +
