@@ -21,20 +21,29 @@ public:
         // extremely specular distributions (alpha values below 10^-3)
         const auto alpha = std::max(float(1e-3), sqr(m_roughness->scalar(uv)));
 
-        NOT_IMPLEMENTED
-
         // hints:
         // * the microfacet normal can be computed from `wi' and `wo'
+        const Vector wm = (wi + wi).normalized();
+
+        Color R    = m_reflectance->evaluate(uv);
+        float D    = evaluateGGX(alpha, wm);
+        float G1_i = smithG1(alpha, wm, wi);
+        float G1_o = smithG1(alpha, wm, wo);
+        float norm = 4.f * abs(Frame::cosTheta(wi)) * abs(Frame::cosTheta(wo));
+
+        return {
+            .value = R * D * G1_i * G1_o / norm,
+        };
     }
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
         const auto alpha = std::max(float(1e-3), sqr(m_roughness->scalar(uv)));
 
-        NOT_IMPLEMENTED
+        Vector normal = sampleGGXVNDF(alpha, wo, rng.next2D());
 
         // hints:
-        // * do not forget to cancel out as many terms from your equations as
+        // * do not forget to cancel out as many terms from your equations aswi
         // possible!
         //   (the resulting sample weight is only a product of two factors)
     }
