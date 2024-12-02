@@ -26,72 +26,38 @@ public:
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
         float ior         = m_ior->scalar(uv);
-        float oir         = 1.f / ior;
         float cos_theta_o = wo[2];
-        // if (cos_theta_o > 0.f) {
-        //     std::swap(ior, oir);
-        // }
-        /*
+
         float r;
+        float sign;
         if (cos_theta_o > 0.f) {
-            r = 1.f / ior;
+            r    = 1.f / ior;
+            sign = -1.f;
         } else {
             cos_theta_o = -cos_theta_o;
             r           = ior;
+            sign        = 1.f;
         }
-        */
-        if (cos_theta_o > 0.f) {
-            float radicant =
-                1.f - oir * oir * (1.f - cos_theta_o * cos_theta_o);
-            if (radicant >= Epsilon) {
-                float cos_theta_i = sqrtf(radicant);
-                // float sin_theta_i = sqrt(1.f - radicant);
+        float radicant = 1.f - r * r * (1.f - cos_theta_o * cos_theta_o);
+        if (radicant >= Epsilon) {
+            float cos_theta_i = sqrtf(radicant);
 
-                // Vector direction = Vector(-wo[0], -wo[1], 0).normalized();
-                // Vector wi_refract =
-                //     (direction * sin_theta_i / cos_theta_i + Vector(0, 0,
-                //     -1))
-                //         .normalized();
-                //  float cos_theta_i = sqrtf(radicant);
+            Vector wi_refract =
+                -r * wo + Vector(0, 0, sign * (-r * cos_theta_o + cos_theta_i));
 
-                Vector wi_refract =
-                    -oir * wo +
-                    Vector(0, 0, -(-oir * cos_theta_o + cos_theta_i));
+            const float rp = (r * cos_theta_i - cos_theta_o) /
+                             (r * cos_theta_i + cos_theta_o);
+            const float rs = (cos_theta_i - r * cos_theta_o) /
+                             (cos_theta_i + r * cos_theta_o);
+            const float fresnel = (rp * rp + rs * rs) / 2.f;
 
-                const float rp = (oir * cos_theta_i - cos_theta_o) /
-                                 (oir * cos_theta_i + cos_theta_o);
-                const float rs = (cos_theta_i - oir * cos_theta_o) /
-                                 (cos_theta_i + oir * cos_theta_o);
-                const float fresnel = 0.0; //(rp * rp + rs * rs) / 2.f;
-
-                if (rng.next() > fresnel) {
-                    const Color transmittance =
-                        m_transmittance->evaluate(uv) * oir * oir;
-                    return {
-                        .wi     = wi_refract.normalized(),
-                        .weight = transmittance,
-                    };
-                }
-            }
-        } else {
-            float radicant =
-                1.f - ior * ior * (1.f - cos_theta_o * cos_theta_o);
-            if (radicant >= Epsilon) {
-                float cos_theta_i = sqrtf(radicant);
-
-                Vector wi_refract =
-                    -ior * wo + Vector(0, 0, ior * cos_theta_o + cos_theta_i);
-
-                const float fresnel = 0.0; //(rp * rp + rs * rs) / 2.f;
-
-                if (rng.next() > fresnel) {
-                    const Color transmittance =
-                        m_transmittance->evaluate(uv) * ior * ior;
-                    return {
-                        .wi     = wi_refract.normalized(),
-                        .weight = transmittance,
-                    };
-                }
+            if (rng.next() > fresnel) {
+                const Color transmittance =
+                    m_transmittance->evaluate(uv) * r * r;
+                return {
+                    .wi     = wi_refract.normalized(),
+                    .weight = transmittance,
+                };
             }
         }
 
