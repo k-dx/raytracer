@@ -11,7 +11,8 @@ public:
     }
 
     EmissionEval evaluate(const Point2 &uv, const Vector &wo) const override {
-        Color albedo = m_emission->evaluate(uv);
+        Color albedo = Frame::cosTheta(wo) >= 0 ? m_emission->evaluate(uv)
+                                                : Color::black();
         return {
             .value = albedo,
         };

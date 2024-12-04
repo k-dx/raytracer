@@ -54,6 +54,7 @@ public:
             if (rng.next() > fresnel) {
                 const Color transmittance =
                     m_transmittance->evaluate(uv) * r * r;
+                //assert_normalized(wi_refract, {});
                 return {
                     .wi     = wi_refract.normalized(),
                     .weight = transmittance,
@@ -63,8 +64,9 @@ public:
 
         Vector wi_reflect       = Vector(-wo[0], -wo[1], wo[2]);
         const Color reflectance = m_reflectance->evaluate(uv);
+        //assert_normalized(wi_reflect, {});
         return {
-            .wi     = wi_reflect,
+            .wi     = wi_reflect.normalized(),
             .weight = reflectance,
         };
     }

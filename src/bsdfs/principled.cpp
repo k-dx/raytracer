@@ -19,6 +19,7 @@ struct DiffuseLobe {
     }
 
     BsdfSample sample(const Vector &wo, Sampler &rng) const {
+        assert_normalized(wo, {});
         const Vector wi       = squareToCosineHemisphere(rng.next2D());
         const float cos_theta = Frame::cosTheta(wi);
 
@@ -26,8 +27,10 @@ struct DiffuseLobe {
             return BsdfSample::invalid();
         }
 
-        const Color weight = color * cos_theta / cosineHemispherePdf(wi);
+        const Color weight =
+            evaluate(wo, wi).value * cos_theta / cosineHemispherePdf(wi);
 
+        assert_normalized(wi, {});
         return {
             .wi     = wi,
             .weight = weight,
@@ -175,7 +178,7 @@ public:
         BsdfSample sample;
         float samplingProbability;
 
-        if (rng.next() < combination.diffuseSelectionProb) {
+        if (rng.next() <= combination.diffuseSelectionProb) {
             sample              = combination.diffuse.sample(wo, rng);
             samplingProbability = combination.diffuseSelectionProb;
         } else {
