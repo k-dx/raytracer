@@ -9,7 +9,9 @@ struct DiffuseLobe {
     Color color;
 
     BsdfEval evaluate(const Vector &wo, const Vector &wi) const {
-        NOT_IMPLEMENTED
+        return {
+            .value = color / std::numbers::pi,
+        };
 
         // hints:
         // * copy your diffuse bsdf evaluate here
@@ -17,7 +19,19 @@ struct DiffuseLobe {
     }
 
     BsdfSample sample(const Vector &wo, Sampler &rng) const {
-        NOT_IMPLEMENTED
+        const Vector wi       = squareToCosineHemisphere(rng.next2D());
+        const float cos_theta = Frame::cosTheta(wi);
+
+        if (cosineHemispherePdf(wi) == 0.f) {
+            return BsdfSample::invalid();
+        }
+
+        const Color weight = color * cos_theta / cosineHemispherePdf(wi);
+
+        return {
+            .wi     = wi,
+            .weight = weight,
+        };
 
         // hints:
         // * copy your diffuse bsdf evaluate here
@@ -30,7 +44,26 @@ struct MetallicLobe {
     Color color;
 
     BsdfEval evaluate(const Vector &wo, const Vector &wi) const {
-        NOT_IMPLEMENTED
+        const float norm =
+            4.f * abs(Frame::cosTheta(wi)) * abs(Frame::cosTheta(wo));
+
+        if (norm == 0.f) {
+            return BsdfEval::invalid();
+        }
+
+        // hints:
+        // the microfacet normal (half-vector) can be computed from `wi' and
+        // `wo'
+        const Vector wm = (wi + wo).normalized();
+
+        const Color R    = color;
+        const float D    = microfacet::evaluateGGX(alpha, wm);
+        const float G1_i = microfacet::smithG1(alpha, wm, wi);
+        const float G1_o = microfacet::smithG1(alpha, wm, wo);
+
+        return {
+            .value = R * D * G1_i * G1_o / norm,
+        };
 
         // hints:
         // * copy your roughconductor bsdf evaluate here
@@ -40,7 +73,26 @@ struct MetallicLobe {
     }
 
     BsdfSample sample(const Vector &wo, Sampler &rng) const {
-        NOT_IMPLEMENTED
+        const Vector normal =
+            microfacet::sampleGGXVNDF(alpha, wo, rng.next2D());
+
+        // we need to mirror the wo vector around the normal to get wi
+        const float cos = wo.dot(normal);
+        // the normal scaled so vector (scaled_normal - wo) is perpendicular to
+        // normal
+        const Vector scaled_normal = cos * normal;
+        const Vector direction     = scaled_normal - wo;
+        const Vector wi            = (scaled_normal + direction).normalized();
+        // const Vector wi = (2.f * wo.dot(normal) * normal - wo).normalized();
+
+        const Color R      = color;
+        const float G1_i   = microfacet::smithG1(alpha, normal, wi);
+        const Color weight = R * G1_i;
+
+        return {
+            .wi     = wi,
+            .weight = weight,
+        };
 
         // hints:
         // * copy your roughconductor bsdf sample here
@@ -102,7 +154,13 @@ public:
         PROFILE("Principled")
 
         const auto combination = combine(uv, wo);
-        NOT_IMPLEMENTED
+
+        const auto diffuse  = combination.diffuse.evaluate(wo, wi);
+        const auto metallic = combination.metallic.evaluate(wo, wi);
+
+        return {
+            .value = diffuse.value + metallic.value,
+        };
 
         // hint: evaluate `combination.diffuse` and `combination.metallic` and
         // combine their results
@@ -113,21 +171,43 @@ public:
         PROFILE("Principled")
 
         const auto combination = combine(uv, wo);
-        NOT_IMPLEMENTED
+
+        BsdfSample sample;
+        float samplingProbability;
+
+        if (rng.next() < combination.diffuseSelectionProb) {
+            sample              = combination.diffuse.sample(wo, rng);
+            samplingProbability = combination.diffuseSelectionProb;
+        } else {
+            sample              = combination.metallic.sample(wo, rng);
+            samplingProbability = 1.f - combination.diffuseSelectionProb;
+        }
+
+        if (sample.isInvalid() || samplingProbability <= 0.f) {
+            return BsdfSample::invalid();
+        }
+
+        return {
+            .wi     = sample.wi,
+            .weight = sample.weight / samplingProbability,
+        };
 
         // hint: sample either `combination.diffuse` (probability
         // `combination.diffuseSelectionProb`) or `combination.metallic`
     }
 
     std::string toString() const override {
-        return tfm::format("Principled[\n"
-                           "  baseColor = %s,\n"
-                           "  roughness = %s,\n"
-                           "  metallic  = %s,\n"
-                           "  specular  = %s,\n"
-                           "]",
-                           indent(m_baseColor), indent(m_roughness),
-                           indent(m_metallic), indent(m_specular));
+        return tfm::format(
+            "Principled[\n"
+            "  baseColor = %s,\n"
+            "  roughness = %s,\n"
+            "  metallic  = %s,\n"
+            "  specular  = %s,\n"
+            "]",
+            indent(m_baseColor),
+            indent(m_roughness),
+            indent(m_metallic),
+            indent(m_specular));
     }
 };
 
