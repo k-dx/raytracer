@@ -34,28 +34,32 @@ public:
                 const DirectLightSample directLight =
                     light->sampleDirect(its.position, rng);
 
-                const Ray lightRay(its.position, directLight.wi);
+                //if (ray.direction.dot(directLight.wi) > 0) {
 
-                const Intersection lightOcclusionIts =
-                    m_scene->intersect(lightRay, rng);
-                if (directLight.distance >= Epsilon &&
-                    (!lightOcclusionIts ||
-                     lightOcclusionIts.t - Epsilon >= directLight.distance)) {
+                    const Ray lightRay(its.position, directLight.wi);
 
-                    const Color fr = its.evaluateBsdf(directLight.wi).value;
+                    const Intersection lightOcclusionIts =
+                        m_scene->intersect(lightRay, rng);
+                    if (directLight.distance >= Epsilon &&
+                        (!lightOcclusionIts ||
+                        lightOcclusionIts.t - Epsilon >= directLight.distance)) {
 
-                    const float cos_theta =
-                        abs(its.shadingNormal.dot(directLight.wi));
+                        const Color fr = its.evaluateBsdf(directLight.wi).value;
 
-                    emission += directLight.weight * cos_theta * weight * fr /
-                                lightSample.probability;
-                }
+                        const float cos_theta =
+                            abs(its.shadingNormal.dot(directLight.wi));
+
+                        emission += directLight.weight * cos_theta * weight * fr /
+                                    lightSample.probability;
+                    }
+                //}
             }
 
             const BsdfSample sample = its.sampleBsdf(rng);
             if (!sample) {
                 break;
             }
+            assert_condition(weight.mean() - 1.f < Epsilon, {});
             weight *= sample.weight;
             currentRay = Ray(its.position, sample.wi, i);
         }
