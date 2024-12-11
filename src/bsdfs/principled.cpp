@@ -9,8 +9,13 @@ struct DiffuseLobe {
     Color color;
 
     BsdfEval evaluate(const Vector &wo, const Vector &wi) const {
+        // we need to check if wi and wo are on the same hemisphere because we
+        // don't want to go through objects
+        const Color albedo =
+            Frame::sameHemisphere(wo, wi) ? color : Color::black();
+        const float cos_theta = Frame::absCosTheta(wi);
         return {
-            .value = color / std::numbers::pi,
+            .value = albedo * cos_theta / std::numbers::pi,
         };
 
         // hints:
@@ -20,20 +25,10 @@ struct DiffuseLobe {
 
     BsdfSample sample(const Vector &wo, Sampler &rng) const {
         assert_normalized(wo, {});
-        const Vector wi       = squareToCosineHemisphere(rng.next2D());
-        const float cos_theta = Frame::cosTheta(wi);
-
-        if (cosineHemispherePdf(wi) == 0.f) {
-            return BsdfSample::invalid();
-        }
-
-        const Color weight =
-            evaluate(wo, wi).value * cos_theta / cosineHemispherePdf(wi);
-
-        assert_normalized(wi, {});
+        const Vector wi = squareToCosineHemisphere(rng.next2D());
         return {
-            .wi     = wi,
-            .weight = weight,
+            .wi     = Frame::sameHemisphere(wi, wo) ? wi : -wi,
+            .weight = color,
         };
 
         // hints:
@@ -47,8 +42,9 @@ struct MetallicLobe {
     Color color;
 
     BsdfEval evaluate(const Vector &wo, const Vector &wi) const {
-        const float norm =
-            4.f * abs(Frame::cosTheta(wi)) * abs(Frame::cosTheta(wo));
+        // we don't need to abs(cosTheta(wi)) here, because it cancels out with
+        // the cos from the rendering equation
+        const float norm = 4.f * abs(Frame::cosTheta(wo));
 
         if (norm == 0.f) {
             return BsdfEval::invalid();

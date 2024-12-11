@@ -21,8 +21,9 @@ public:
         // extremely specular distributions (alpha values below 10^-3)
         const auto alpha = std::max(float(1e-3), sqr(m_roughness->scalar(uv)));
 
-        const float norm =
-            4.f * abs(Frame::cosTheta(wi)) * abs(Frame::cosTheta(wo));
+        // we don't need to abs(cosTheta(wi)) here, because it cancels out with
+        // the cos from the rendering equation
+        const float norm = 4.f * abs(Frame::cosTheta(wo));
 
         if (norm == 0.f) {
             return BsdfEval::invalid();

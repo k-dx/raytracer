@@ -39,10 +39,7 @@ public:
 
                     const Color fr = its.evaluateBsdf(directLight.wi).value;
 
-                    const float cos_theta =
-                        abs(its.shadingNormal.dot(directLight.wi));
-
-                    emission += directLight.weight * cos_theta * weight * fr /
+                    emission += directLight.weight * weight * fr /
                                 lightSample.probability;
                 }
             }

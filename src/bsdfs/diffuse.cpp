@@ -14,31 +14,21 @@ public:
                       const Vector &wi) const override {
         // we need to check if wi and wo are on the same hemisphere because we
         // don't want to go through objects
-        const Color albedo = Frame::sameHemisphere(wo, wi)
-                                 ? m_albedo->evaluate(uv)
-                                 : Color::black();
+        const Color albedo    = Frame::sameHemisphere(wo, wi)
+                                    ? m_albedo->evaluate(uv)
+                                    : Color::black();
+        const float cos_theta = Frame::absCosTheta(wi);
         return {
-            .value = albedo / std::numbers::pi,
+            .value = albedo * cos_theta / std::numbers::pi,
         };
     }
 
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
-        const Vector wi       = squareToCosineHemisphere(rng.next2D());
-        const float cos_theta = Frame::cosTheta(wi);
-
-        if (cosineHemispherePdf(wi) == 0.f) {
-            return BsdfSample::invalid();
-        }
-
-        const Color weight =
-            evaluate(uv, wo, wi).value * cos_theta / cosineHemispherePdf(wi);
-
-        assert_condition(wi.z() >= 0, {});
-
+        const Vector wi = squareToCosineHemisphere(rng.next2D());
         return {
-            .wi     = wi,
-            .weight = weight,
+            .wi     = Frame::sameHemisphere(wi, wo) ? wi : -wi,
+            .weight = m_albedo->evaluate(uv),
         };
     }
 
