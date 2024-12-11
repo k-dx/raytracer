@@ -12,7 +12,11 @@ public:
 
     BsdfEval evaluate(const Point2 &uv, const Vector &wo,
                       const Vector &wi) const override {
-        const Color albedo = m_albedo->evaluate(uv);
+        // we need to check if wi and wo are on the same hemisphere because we
+        // don't want to go through objects
+        const Color albedo = Frame::sameHemisphere(wo, wi)
+                                 ? m_albedo->evaluate(uv)
+                                 : Color::black();
         return {
             .value = albedo / std::numbers::pi,
         };
@@ -29,6 +33,8 @@ public:
 
         const Color weight =
             evaluate(uv, wo, wi).value * cos_theta / cosineHemispherePdf(wi);
+
+        assert_condition(wi.z() >= 0, {});
 
         return {
             .wi     = wi,

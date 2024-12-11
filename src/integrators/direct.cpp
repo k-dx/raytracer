@@ -23,26 +23,21 @@ public:
             const DirectLightSample directLight =
                 light->sampleDirect(its.position, rng);
 
-            // check if sampled light is on the same side as the ray
-            if (std::signbit(its.shadingNormal.dot(its.wo)) ==
-                std::signbit(its.shadingNormal.dot(directLight.wi))) {
+            const Ray lightRay(its.position, directLight.wi);
 
-                const Ray lightRay(its.position, directLight.wi);
+            const Intersection lightOcclusionIts =
+                m_scene->intersect(lightRay, rng);
+            if (directLight.distance >= Epsilon &&
+                (!lightOcclusionIts ||
+                 lightOcclusionIts.t - Epsilon >= directLight.distance)) {
 
-                const Intersection lightOcclusionIts =
-                    m_scene->intersect(lightRay, rng);
-                if (directLight.distance >= Epsilon &&
-                    (!lightOcclusionIts ||
-                     lightOcclusionIts.t - Epsilon >= directLight.distance)) {
+                const Color fr = its.evaluateBsdf(directLight.wi).value;
 
-                    const Color fr = its.evaluateBsdf(directLight.wi).value;
+                const float cos_theta =
+                    abs(its.shadingNormal.dot(directLight.wi));
 
-                    const float cos_theta =
-                        abs(its.shadingNormal.dot(directLight.wi));
-
-                    lightContribution = directLight.weight * cos_theta * fr /
-                                        lightSample.probability;
-                }
+                lightContribution = directLight.weight * cos_theta * fr /
+                                    lightSample.probability;
             }
         }
 
