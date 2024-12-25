@@ -10,8 +10,15 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
     surf.tangent  = m_transform->apply(surf.tangent).normalized();
     surf.geometryNormal =
         m_transform->applyNormal(surf.geometryNormal).normalized();
-    surf.shadingNormal =
-        m_transform->applyNormal(surf.shadingNormal).normalized();
+
+    Vector shadingNormal;
+    if (m_normal) {
+        auto texture  = m_normal->evaluate(surf.uv);
+        shadingNormal = Vector(texture.r(), texture.g(), texture.b());
+    } else {
+        shadingNormal = surf.shadingNormal;
+    }
+    surf.shadingNormal = m_transform->applyNormal(shadingNormal).normalized();
 }
 
 inline void validateIntersection(const Intersection &its) {

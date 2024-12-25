@@ -39,6 +39,9 @@ class Instance : public Shape {
     /// @brief The transformation applied to the shape, leading from object
     /// coordinates to world coordinates.
     ref<Transform> m_transform;
+    /// @brief The normal map "shading normals" for the object. Overrides the
+    /// shading normals calculated inside shape.
+    ref<Texture> m_normal;
     /// @brief Tracks whether this instance has been added to the scene, i.e.,
     /// could be hit by ray tracing.
     bool m_visible;
@@ -53,7 +56,8 @@ public:
         m_bsdf      = properties.getOptionalChild<Bsdf>();
         m_emission  = properties.getOptionalChild<Emission>();
         m_transform = properties.getOptionalChild<Transform>();
-        m_visible = false;
+        m_normal    = properties.getOptional<Texture>("normal");
+        m_visible   = false;
     }
 
     /// @brief Returns the shape.
@@ -115,12 +119,13 @@ public:
             "  bsdf = %s,\n"
             "  emission = %s,\n"
             "  transform = %s,\n"
+            "  normal = %s,\n"
             "]",
             indent(m_shape),
             indent(m_bsdf),
             indent(m_emission),
-            indent(m_transform)
-        );
+            indent(m_transform),
+            indent(m_normal));
     }
 };
 
