@@ -35,7 +35,7 @@ public:
                                   (-position.x() - position.y()) / position.z())
                                .normalized();
         }
-        surf.pdf = 0.0f;
+        surf.pdf = Inv4Pi;
     }
 
     bool intersect(const Ray &ray, Intersection &its,
@@ -69,11 +69,14 @@ public:
 
     Point getCentroid() const override { return Point(0); }
 
-    AreaSample sampleArea(Sampler &rng) const override{ NOT_IMPLEMENTED }
-
-    std::string toString() const override {
-        return "Sphere[]";
+    AreaSample sampleArea(Sampler &rng) const override {
+        const Vector position = squareToUniformSphere(rng.next2D());
+        AreaSample sample;
+        populate(sample, position);
+        return sample;
     }
+
+    std::string toString() const override { return "Sphere[]"; }
 };
 } // namespace lightwave
 
