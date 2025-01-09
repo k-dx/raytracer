@@ -1,4 +1,4 @@
-<test type="image" id="spheres_area_lights">
+<test type="image" id="rectangle_area_light2">
     <integrator type="direct">
         <scene id="scene">
             <camera type="perspective" id="camera">
@@ -16,26 +16,19 @@
 
             <light type="area">
                 <instance>
-                    <shape type="sphere"/>
+                    <shape type="rectangle"/>
+                    <!-- <bsdf type="diffuse">
+                        <texture name="albedo" type="constant" value="0,1,0"/>
+                    </bsdf> -->
                     <emission type="lambertian">
-                        <texture name="emission" type="constant" value="2,0.5,0.1"/>
+                        <texture name="emission" type="constant" value="0.1,0.5,0.1"/>
                     </emission>
                     <transform>
-                        <scale value="0.2"/>
-                        <translate x="1.5" y="-0.7" z="0"/>
-                    </transform>
-                </instance>
-            </light>
-            <light type="area">
-                <instance>
-                    <shape type="sphere"/>
-                    <emission type="lambertian">
-                        <texture name="emission" type="constant" value="0.2,0.7,3"/>
-                    </emission>
-                    <transform>
-                        <scale value="0.5"/>
-                        <translate x="-1.5" y="-1" z="1"/>
-                    </transform>
+                    <scale value="0.5"/>
+                    <rotate axis="1,0,0" angle="-90"/>
+                    <rotate axis="0,0,1" angle="60"/>
+                    <translate x="0.5" y="-0.8" z="0"/>
+                </transform>
                 </instance>
             </light>
 

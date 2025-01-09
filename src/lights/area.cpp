@@ -15,13 +15,15 @@ public:
                                    Sampler &rng) const override {
         const AreaSample sample = m_instance->sampleArea(rng);
         const Vector wi         = sample.position - origin;
-        const Vector wiLocal    = sample.shadingFrame().toLocal(wi);
+        const Vector wiLocal = sample.shadingFrame().toLocal(-wi).normalized();
         const EmissionEval emission =
-            m_instance->emission()->evaluate(sample.uv, -wiLocal);
+            m_instance->emission()->evaluate(sample.uv, wiLocal);
+        const float cos_theta = Frame::absCosTheta(wiLocal);
+        const float distance  = wi.length();
         return {
-            .wi       = wi.normalized(),
-            .weight   = emission.value * sample.pdf,
-            .distance = wi.length(),
+            .wi     = wi.normalized(),
+            .weight = emission.value * cos_theta / (sample.pdf * sqr(distance)),
+            .distance = distance,
         };
     }
 

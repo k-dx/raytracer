@@ -1,4 +1,4 @@
-<test type="image" id="rectangle_area_light">
+<test type="image" id="rectangle_area_light1">
     <integrator type="direct">
         <scene id="scene">
             <camera type="perspective" id="camera">
@@ -21,10 +21,10 @@
                         <texture name="albedo" type="constant" value="0,1,0"/>
                     </bsdf> -->
                     <emission type="lambertian">
-                        <texture name="emission" type="constant" value="0.5,2.5,0.5"/>
+                        <texture name="emission" type="constant" value="0.1,0.5,0.1"/>
                     </emission>
                     <transform>
-                        <scale value="1"/>
+                        <scale value="3"/>
                         <rotate axis="1,0,0" angle="-90"/>
                         <translate x="0" y="-1.2" z="0"/>
                     </transform>
