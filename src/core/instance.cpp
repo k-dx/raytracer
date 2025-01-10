@@ -13,8 +13,9 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
 
     Vector shadingNormal;
     if (m_normal) {
-        auto texture  = m_normal->evaluate(surf.uv);
+        const auto texture  = m_normal->evaluate(surf.uv);
         shadingNormal = Vector(texture.r(), texture.g(), texture.b());
+        shadingNormal = 2.0f * shadingNormal - Vector(1.0f);
     } else {
         shadingNormal = surf.shadingNormal;
     }
