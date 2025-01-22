@@ -39,6 +39,7 @@ public:
                 colorPtr++;
                 color.b() = *colorPtr;
                 colorPtr++;
+                color.a() = 1;
                 image->get(Point2i(i, j)) = color;
             }
         }
@@ -46,6 +47,7 @@ public:
 
     void execute() override {
         std::cout << "Start postprocessing" << std::endl;
+        /*
         Point2i resolution = m_input->resolution();
         std::cout << resolution.x() << "|" << resolution.y() << std::endl;
 
@@ -91,7 +93,9 @@ public:
         // Get output image
         m_output->initialize(resolution);
         readBuffer(colorBuf, m_output);
+        */
 
+        m_output->copy(*m_input.get());
         m_output->save();
         std::cout << "Finish postprocessing" << std::endl;
     }

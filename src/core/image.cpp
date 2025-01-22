@@ -66,7 +66,7 @@ void Image::saveAt(const std::filesystem::path &path) const {
     if (SaveEXR(reinterpret_cast<const float *>(m_data.data()),
                 m_resolution.x(),
                 m_resolution.y(),
-                3,
+                Color::NumComponents,
                 true,
                 path.generic_string().c_str(),
                 &error)) {
