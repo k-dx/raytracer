@@ -616,7 +616,7 @@ void Streaming::updateBlock(const Bounds2i &block) {
 
     std::vector<int64_t> channelOffsets(Color::NumComponents);
     std::vector<int64_t> channelStrides(Color::NumComponents);
-    for (int channel = 0; channel < 3; channel++) {
+    for (int channel = 0; channel < 4; channel++) {
         channelOffsets[channel] = channel;
         channelStrides[channel] = Color::NumComponents;
     }

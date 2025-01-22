@@ -21,7 +21,7 @@ namespace lightwave {
 /// @brief Represents RGB colors in linear color space.
 class Color {
 public:
-    static constexpr int NumComponents = 3;
+    static constexpr int NumComponents = 4;
 
 private:
     /// @brief Contains the RGB components of this color, in that sequence.
@@ -29,22 +29,29 @@ private:
 
 public:
     /// @brief Create black color.
-    Color() { std::fill(m_data.begin(), m_data.end(), 0.0f); }
+    Color() {
+        std::fill(m_data.begin(), m_data.end(), 0.0f);
+        m_data[3] = 1.0f;
+    }
     /// @brief Create gray color with brightness @c v .
-    explicit Color(float v) { std::fill(m_data.begin(), m_data.end(), v); }
+    explicit Color(float v) {
+        std::fill(m_data.begin(), m_data.end(), v);
+        m_data[3] = 1.0f;
+    }
 
     /// @brief Create color with the provided RGB values.
-    Color(float r, float g, float b) : m_data({ r, g, b }) {}
+    Color(float r, float g, float b, float a = 1.0f) : m_data({ r, g, b, a }) {}
     /// @brief Interpret a @ref Vector as color ( @c x corresponds to @c r , @c
     /// y to @c g , and @c z to @c b ).
-    explicit Color(const Vector &vec) : m_data(vec.data()) {}
+    explicit Color(const Vector &vec)
+        : m_data({ vec.x(), vec.y(), vec.z(), 1.0f }) {}
 
     /// @brief Returns an array of the RGB values of this color, in that
     /// sequence.
-    const std::array<float, 3> &data() const { return m_data; }
+    const std::array<float, NumComponents> &data() const { return m_data; }
     /// @brief Returns an array of the RGB values of this color that can be
     /// modified, in that sequence.
-    std::array<float, 3> &data() { return m_data; }
+    std::array<float, NumComponents> &data() { return m_data; }
 
     /// @brief Access a component of this color, with an index either 0 (red), 1
     /// (green), or 2 (blue).
@@ -59,6 +66,8 @@ public:
     const float &g() const { return m_data[1]; }
     /// @brief Get the blue component of this color.
     const float &b() const { return m_data[2]; }
+    /// @brief Get the alpha component of this color.
+    const float &a() const { return m_data[3]; }
 
     /// @brief Get the red component of this color that can be modified.
     float &r() { return m_data[0]; }
@@ -66,6 +75,8 @@ public:
     float &g() { return m_data[1]; }
     /// @brief Get the blue component of this color that can be modified.
     float &b() { return m_data[2]; }
+    /// @brief Get the alpha component of this color that can be modified.
+    float &a() { return m_data[3]; }
 
     /// @brief Multiply all color components by a given scalar.
     friend Color operator*(float a, const Color &b) { BUILD(a * b[i]) }

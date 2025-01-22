@@ -20,7 +20,7 @@ class Streaming {
     class Stream;
     struct UpdateThread;
 
-    const std::vector<std::string> m_channels = { "r", "g", "b" };
+    const std::vector<std::string> m_channels = { "r", "g", "b", "a" };
     const Image &m_image;
     std::mutex m_mutex;
     float m_normalization = 1;
