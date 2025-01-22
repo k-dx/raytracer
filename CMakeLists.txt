@@ -19,6 +19,8 @@ if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
     set(CMAKE_INSTALL_MESSAGE "LAZY")
 endif()
 
+set(CMAKE_PREFIX_PATH "lib")
+
 project(lightwave LANGUAGES CXX)
 
 # For whatever reason Lightwave might be used as a subproject...
