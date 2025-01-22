@@ -27,7 +27,6 @@ void Image::loadImage(const std::filesystem::path &path, bool isLinearSpace) {
         for (auto &pixel : m_data) {
             for (int i = 0; i < pixel.NumComponents; i++)
                 pixel[i] = *it++;
-            it++; // skip alpha channel
         }
         free(data);
     } else {
@@ -39,7 +38,7 @@ void Image::loadImage(const std::filesystem::path &path, bool isLinearSpace) {
                                  &m_resolution.x(),
                                  &m_resolution.y(),
                                  &numChannels,
-                                 3);
+                                 4);
         if (data == nullptr) {
             lightwave_throw(
                 "could not load image %s: %s", path, stbi_failure_reason());
