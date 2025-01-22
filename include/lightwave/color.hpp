@@ -19,6 +19,7 @@ namespace lightwave {
     return result;
 
 /// @brief Represents RGB colors in linear color space.
+/// alpha: 0 = transparent, 1 = opaque
 class Color {
 public:
     static constexpr int NumComponents = 4;

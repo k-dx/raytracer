@@ -42,6 +42,8 @@ class Instance : public Shape {
     /// @brief The normal map "shading normals" for the object. Overrides the
     /// shading normals calculated inside shape.
     ref<Texture> m_normal;
+    /// @brief The texture used for alpha masking.
+    ref<Texture> m_alpha;
     /// @brief Tracks whether this instance has been added to the scene, i.e.,
     /// could be hit by ray tracing.
     bool m_visible;
@@ -57,6 +59,7 @@ public:
         m_emission  = properties.getOptionalChild<Emission>();
         m_transform = properties.getOptionalChild<Transform>();
         m_normal    = properties.getOptional<Texture>("normal");
+        m_alpha     = properties.getOptional<Texture>("alpha");
         m_visible   = false;
     }
 
@@ -120,12 +123,14 @@ public:
             "  emission = %s,\n"
             "  transform = %s,\n"
             "  normal = %s,\n"
+            "  alpha = %s,\n"
             "]",
             indent(m_shape),
             indent(m_bsdf),
             indent(m_emission),
             indent(m_transform),
-            indent(m_normal));
+            indent(m_normal),
+            indent(m_alpha));
     }
 };
 

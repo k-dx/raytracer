@@ -13,9 +13,9 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
 
     Vector shadingNormal;
     if (m_normal) {
-        const auto texture  = m_normal->evaluate(surf.uv);
-        shadingNormal = Vector(texture.r(), texture.g(), texture.b());
-        shadingNormal = 2.0f * shadingNormal - Vector(1.0f);
+        const auto texture = m_normal->evaluate(surf.uv);
+        shadingNormal      = Vector(texture.r(), texture.g(), texture.b());
+        shadingNormal      = 2.0f * shadingNormal - Vector(1.0f);
     } else {
         shadingNormal = surf.shadingNormal;
     }
@@ -53,37 +53,47 @@ inline void validateIntersection(const Intersection &its) {
 
 bool Instance::intersect(const Ray &worldRay, Intersection &its,
                          Sampler &rng) const {
+    const Intersection prevIts = its;
     if (!m_transform) {
         // fast path, if no transform is needed
-        const Ray localRay        = worldRay;
-        const bool wasIntersected = m_shape->intersect(localRay, its, rng);
+        const Ray localRay  = worldRay;
+        bool wasIntersected = m_shape->intersect(localRay, its, rng);
         if (wasIntersected) {
-            its.instance = this;
             validateIntersection(its);
+            if (m_alpha && m_alpha->evaluate(its.uv).a() <= rng.next()) {
+                its            = prevIts;
+                wasIntersected = false;
+            } else {
+                its.instance = this;
+            }
         }
         return wasIntersected;
     }
 
-    const float previousT = its.t;
-    Ray localRay          = m_transform->inverse(worldRay);
-    float rayLength       = localRay.direction.length();
-    localRay              = localRay.normalized();
+    Ray localRay    = m_transform->inverse(worldRay);
+    float rayLength = localRay.direction.length();
+    localRay        = localRay.normalized();
 
     // hints:
     // * transform the ray (do not forget to normalize!)
     // * how does its.t need to change?
     its.t *= rayLength;
 
-    const bool wasIntersected = m_shape->intersect(localRay, its, rng);
+    bool wasIntersected = m_shape->intersect(localRay, its, rng);
+    if (wasIntersected) {
+        validateIntersection(its);
+    }
+    if (!wasIntersected || (wasIntersected && m_alpha &&
+                            m_alpha->evaluate(its.uv).a() <= rng.next())) {
+        its            = prevIts;
+        wasIntersected = false;
+    }
+
     if (wasIntersected) {
         its.instance = this;
         validateIntersection(its);
-        // hint: how does its.t need to change?
         its.t /= rayLength;
-
         transformFrame(its, -localRay.direction);
-    } else {
-        its.t = previousT;
     }
 
     return wasIntersected;
