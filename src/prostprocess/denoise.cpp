@@ -46,9 +46,10 @@ public:
     }
 
     void execute() override {
-        std::cout << "Start postprocessing" << std::endl;
         Point2i resolution = m_input->resolution();
-        std::cout << resolution.x() << "|" << resolution.y() << std::endl;
+
+        m_output->initialize(resolution);
+        Streaming streaming(*m_output.get());
 
         // Create an Open Image Denoise device
         oidn::DeviceRef device = oidn::newDevice(); // CPU or GPU if available
@@ -90,11 +91,10 @@ public:
             std::cout << "Error: " << errorMessage << std::endl;
 
         // Get output image
-        m_output->initialize(resolution);
         readBuffer(colorBuf, m_output);
 
+        streaming.update();
         m_output->save();
-        std::cout << "Finish postprocessing" << std::endl;
     }
 
     std::string toString() const override {
