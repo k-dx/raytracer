@@ -199,6 +199,12 @@ BsdfEval Intersection::evaluateBsdf(const Vector &wi) const {
         uv, shadingFrame().toLocal(wo), shadingFrame().toLocal(wi));
 }
 
+Color Intersection::evaluateAlbedo() const {
+    if (!instance || !instance->bsdf())
+        return evaluateEmission().value;
+    return instance->bsdf()->getAlbedo(uv);
+}
+
 Light *Intersection::light() const {
     if (!instance)
         return background;

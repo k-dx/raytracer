@@ -23,6 +23,10 @@ public:
         };
     }
 
+    virtual Color getAlbedo(const Point2 &uv) const override {
+        return m_albedo->evaluate(uv);
+    }
+
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
         const Vector wi = squareToCosineHemisphere(rng.next2D());

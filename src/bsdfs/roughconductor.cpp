@@ -44,6 +44,10 @@ public:
         };
     }
 
+    virtual Color getAlbedo(const Point2 &uv) const override {
+        return m_reflectance->evaluate(uv);
+    }
+
     BsdfSample sample(const Point2 &uv, const Vector &wo,
                       Sampler &rng) const override {
         const auto alpha = std::max(float(1e-3), sqr(m_roughness->scalar(uv)));

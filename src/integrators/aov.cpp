@@ -8,6 +8,7 @@ class AovIntegrator : public SamplingIntegrator {
         AovDistance,
         AovBvh,
         AovUv,
+        AovAlbedo,
     } m_variable;
     float m_scale;
 
@@ -20,6 +21,7 @@ public:
             { "distance", AovDistance },
             { "bvh",      AovBvh      },
             { "uv",       AovUv       },
+            { "albedo",   AovAlbedo   },
         });
         m_scale = properties.get<float>("scale", 1.f);
         // clang-format on
@@ -40,6 +42,8 @@ public:
                          0);
         case AovUv:
             return its ? Color(its.uv.x(), its.uv.y(), 0) : Color(0);
+        case AovAlbedo:
+            return its ? its.evaluateAlbedo() : Color(0);
         default:
             return Color(0);
         }

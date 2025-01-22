@@ -988,6 +988,7 @@ struct Intersection : public SurfaceEvent {
     /// @brief Samples the Bsdf of the underlying surface.
     BsdfSample sampleBsdf(Sampler &rng) const;
     BsdfEval evaluateBsdf(const Vector &wi) const;
+    Color evaluateAlbedo() const;
 
     Light *light() const;
 };
