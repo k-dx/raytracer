@@ -15,7 +15,16 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
     if (m_normal) {
         const auto texture = m_normal->evaluate(surf.uv);
         shadingNormal      = Vector(texture.r(), texture.g(), texture.b());
-        shadingNormal      = 2.0f * shadingNormal - Vector(1.0f);
+
+        // texture values can only be nonnegative, so we need to adjust the
+        // normals from [0, 1]^3 to [-1, 1]^3
+        shadingNormal = 2.0f * shadingNormal - Vector(1.0f);
+
+        // we use the Frame::toWorld as a convenience function to rotate the
+        // shading normal to take into account where the surface is facing (the
+        // "old" normal) in local coordinates
+        Frame f(surf.shadingNormal);
+        shadingNormal = f.toWorld(shadingNormal);
     } else {
         shadingNormal = surf.shadingNormal;
     }
