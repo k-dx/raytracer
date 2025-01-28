@@ -16,25 +16,9 @@ public:
         surf.shadingNormal  = Vector(position);
         surf.geometryNormal = surf.shadingNormal;
 
-        // Three different cases to account for all edge cases where the normal
-        // in one direction is 0 0.5 is approximately 1/sqrt(3). More accuracy
-        // is not needed here :)
-        if (abs(position.x()) >= 0.5) {
-            surf.tangent = Vector((-position.y() - position.z()) / position.x(),
-                                  1.0f,
-                                  1.0f)
-                               .normalized();
-        } else if (abs(position.y()) >= 0.5) {
-            surf.tangent = Vector(1.0f,
-                                  (-position.x() - position.z()) / position.y(),
-                                  1.0f)
-                               .normalized();
-        } else {
-            surf.tangent = Vector(1.0f,
-                                  1.0f,
-                                  (-position.x() - position.y()) / position.z())
-                               .normalized();
-        }
+        // simplified Vector(position).cross(Vector(0.f, 0.f, 1.f))
+        surf.tangent = Vector(position.y(), -position.x(), 0.f);
+
         surf.pdf = Inv4Pi;
     }
 
@@ -57,8 +41,12 @@ public:
             return false;
         }
 
-        its.t = t;
-        populate(its, ray(t));
+        its.t          = t;
+        Point position = ray(t);
+        position.x()   = clamp(position.x(), -1.f, 1.f);
+        position.y()   = clamp(position.y(), -1.f, 1.f);
+        position.z()   = clamp(position.z(), -1.f, 1.f);
+        populate(its, position);
 
         return true;
     }

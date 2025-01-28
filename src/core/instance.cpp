@@ -11,24 +11,28 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
     surf.geometryNormal =
         m_transform->applyNormal(surf.geometryNormal).normalized();
 
-    Vector shadingNormal;
+    surf.shadingNormal =
+        m_transform->applyNormal(surf.shadingNormal).normalized();
+
     if (m_normal) {
-        const auto texture = m_normal->evaluate(surf.uv);
-        shadingNormal      = Vector(texture.r(), texture.g(), texture.b());
+        const auto texture   = m_normal->evaluate(surf.uv);
+        Vector shadingNormal = Vector(texture.r(), texture.g(), texture.b());
 
-        // texture values can only be nonnegative, so we need to adjust the
-        // normals from [0, 1]^3 to [-1, 1]^3
-        shadingNormal = 2.0f * shadingNormal - Vector(1.0f);
+        if (shadingNormal.lengthSquared() == 0.0f) {
+            logger(EWarn,
+                   "Shading normal is of length 0, using value from "
+                   "surface instead in instance %s",
+                   toString());
+        } else {
+            // texture values can only be nonnegative, so we need to adjust the
+            // normals from [0, 1]^3 to [-1, 1]^3
+            shadingNormal = 2.0f * shadingNormal - Vector(1.0f);
 
-        // we use the Frame::toWorld as a convenience function to rotate the
-        // shading normal to take into account where the surface is facing (the
-        // "old" normal) in local coordinates
-        Frame f(surf.shadingNormal);
-        shadingNormal = f.toWorld(shadingNormal);
-    } else {
-        shadingNormal = surf.shadingNormal;
+            // "wrap" the normals around the object
+            surf.shadingNormal =
+                surf.shadingFrame().toWorld(shadingNormal).normalized();
+        }
     }
-    surf.shadingNormal = m_transform->applyNormal(shadingNormal).normalized();
 
     surf.pdf /= abs(m_transform->determinant());
 }
