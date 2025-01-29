@@ -18,11 +18,10 @@ public:
         const Vector wiLocal = sample.shadingFrame().toLocal(-wi).normalized();
         const EmissionEval emission =
             m_instance->emission()->evaluate(sample.uv, wiLocal);
-        const float cos_theta = Frame::absCosTheta(wiLocal);
-        const float distance  = wi.length();
+        const float distance = wi.length();
         return {
-            .wi     = wi.normalized(),
-            .weight = emission.value * cos_theta / (sample.pdf * sqr(distance)),
+            .wi       = wi.normalized(),
+            .weight   = emission.value / (sample.pdf * sqr(distance)),
             .distance = distance,
         };
     }
