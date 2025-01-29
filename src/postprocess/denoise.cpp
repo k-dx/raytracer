@@ -75,7 +75,6 @@ public:
 
         filter.setImage("output", colorBuf,  oidn::Format::Float3, resolution.x(), resolution.y());
         filter.set("hdr", true); // beauty image is HDR
-        filter.set("cleanAux", true); // normal and albedo image do not have noise
         filter.commit();
 
         // Filter the beauty image
