@@ -37,7 +37,7 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
         }
     }
 
-    surf.pdf /= tangentNotNormalized.cross(bitangentNotNormalized).length() ;//abs(m_transform->determinant());
+    surf.pdf /= tangentNotNormalized.cross(bitangentNotNormalized).length();
 }
 
 inline void validateIntersection(const Intersection &its) {
