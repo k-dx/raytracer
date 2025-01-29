@@ -6,10 +6,13 @@
 namespace lightwave {
 
 void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
+    Vector bitangentNotNormalized = surf.geometryNormal.cross(surf.tangent);
+    bitangentNotNormalized = m_transform->apply(bitangentNotNormalized);
+
     surf.position = m_transform->apply(surf.position);
-    surf.tangent  = m_transform->apply(surf.tangent).normalized();
-    surf.geometryNormal =
-        m_transform->applyNormal(surf.geometryNormal).normalized();
+    Vector tangentNotNormalized = m_transform->apply(surf.tangent);
+    surf.tangent  = tangentNotNormalized.normalized();
+    surf.geometryNormal = m_transform->applyNormal(surf.geometryNormal).normalized();
 
     surf.shadingNormal =
         m_transform->applyNormal(surf.shadingNormal).normalized();
@@ -34,7 +37,7 @@ void Instance::transformFrame(SurfaceEvent &surf, const Vector &wo) const {
         }
     }
 
-    surf.pdf /= abs(m_transform->determinant());
+    surf.pdf /= tangentNotNormalized.cross(bitangentNotNormalized).length() ;//abs(m_transform->determinant());
 }
 
 inline void validateIntersection(const Intersection &its) {
