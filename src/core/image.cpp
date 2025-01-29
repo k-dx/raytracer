@@ -63,7 +63,13 @@ void Image::saveAt(const std::filesystem::path &path) const {
     }
 
     logger(EInfo, "saving image %s", path);
-    if (SaveEXR(reinterpret_cast<const float *>(m_data.data()),
+
+    std::vector<Color> data;
+    for (auto pixel : m_data) {
+        data.push_back(pixel);
+        data.back().a() = 1.f;
+    }
+    if (SaveEXR(reinterpret_cast<const float *>(data.data()),
                 m_resolution.x(),
                 m_resolution.y(),
                 Color::NumComponents,

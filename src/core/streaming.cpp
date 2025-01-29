@@ -611,8 +611,10 @@ void Streaming::updateBlock(const Bounds2i &block) {
     static_assert(sizeof(Color) == Color::NumComponents * sizeof(float));
     std::vector<Color> data;
     data.reserve(block.diagonal().product());
-    for (auto pixel : block)
+    for (auto pixel : block) {
         data.push_back(m_image(pixel) * m_normalization);
+        data.back().a() = 1.f;
+    }
 
     std::vector<int64_t> channelOffsets(Color::NumComponents);
     std::vector<int64_t> channelStrides(Color::NumComponents);
