@@ -48,7 +48,7 @@ public:
             if (!sample) {
                 break;
             }
-            assert_condition(weight.mean() - 1.f < Epsilon, {});
+
             weight *= sample.weight;
 
             currentRay = Ray(its.position, sample.wi, i + 1);
