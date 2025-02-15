@@ -1,3 +1,26 @@
+# Raytracer
+
+A raytracer built upon the *lightwave* framework, together with Chiristian Baldus, during the Computer Graphics course at University of Saarland.
+
+> Our team was assigned the name *ditto* therefore we named our executable *blob*.
+
+## Compilation and running
+
+```
+cmake --build ./build --config Release --target all -j 10
+./build/blob ./example_scene.xml
+tev ./example_scene.exr # open the render using tev
+```
+
+Tev can also be opened before the rendering, then the image will be streamed to it during rendering.
+
+> [!NOTE]
+> Tests from `./run_tests.py` currently fail because of `Color` class extension with alpha values. The images can be compared by eye.
+
+---
+
+Original README:
+
 # lightwave
 
 Welcome to _lightwave_, an educational framework for writing ray tracers that can render photo-realistic images!
