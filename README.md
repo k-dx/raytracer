@@ -1,6 +1,6 @@
 # Raytracer
 
-A raytracer built upon the *lightwave* framework, together with Chiristian Baldus, during the Computer Graphics course at University of Saarland.
+A raytracer built upon the *lightwave* framework, together with Christian Baldus, during the Computer Graphics course at University of Saarland.
 
 > Our team was assigned the name *ditto* therefore we named our executable *blob*.
 
